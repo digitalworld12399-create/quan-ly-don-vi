@@ -1,9 +1,6 @@
 streamlit
+pandas
 cloudscraper
 beautifulsoup4
 supabase
-pandas
 openpyxl
-re
-datetime
-io
