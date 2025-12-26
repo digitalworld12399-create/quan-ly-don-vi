@@ -6,6 +6,7 @@ import re
 from datetime import datetime
 import pandas as pd
 import io
+import time  # Thêm thư viện để kiểm soát thời gian hiển thị thông báo
 
 # --- 1. KẾT NỐI HỆ THỐNG SUPABASE ---
 URL = "https://niqehefvnzwbfwafncej.supabase.co"
@@ -97,9 +98,7 @@ with st.sidebar:
 
     st.sidebar.markdown("---")
     st.sidebar.info("📞 **Hỗ trợ kỹ thuật:**\n\nNguyễn Văn Ánh HN11\n\nĐT: **0969.338.332**")
-    
-    # HIỂN THỊ PHIÊN BẢN (VERSION) TẠI ĐÂY
-    st.sidebar.caption("📌 **Version: 1.0.0**")
+    st.sidebar.caption("📌 **Version: 1.0.1**")
 
 # --- 3. TRANG 1: CẬP NHẬT ĐƠN VỊ ---
 if menu == "🏠 Cập nhật đơn vị":
@@ -120,26 +119,20 @@ if menu == "🏠 Cập nhật đơn vị":
     with col1:
         st.markdown("**Tên đơn vị <span style='color:red;'>*</span>**", unsafe_allow_html=True)
         st.session_state.form["ten"] = st.text_input("Tên đơn vị", value=st.session_state.form["ten"], label_visibility="collapsed")
-        
         st.markdown("**Địa chỉ**")
         st.session_state.form["dc"] = st.text_area("Địa chỉ", value=st.session_state.form["dc"], label_visibility="collapsed")
-        
         st.markdown("**Mã số thuế xác nhận <span style='color:red;'>*</span>**", unsafe_allow_html=True)
         st.session_state.form["mst"] = st.text_input("MST Xác nhận", value=st.session_state.form["mst"], label_visibility="collapsed")
-        
         st.markdown("**Cơ quan thuế**")
         st.session_state.form["thue"] = st.text_input("Cơ quan thuế", value=st.session_state.form["thue"], label_visibility="collapsed")
         
     with col2:
         st.markdown("**Mã QHNS <span style='color:red;'>*</span>**", unsafe_allow_html=True)
         st.text_input("Mã QHNS", value=st.session_state.form["qhns"], max_chars=7, key="qhns_input", on_change=update_tk_kb, label_visibility="collapsed")
-        
         st.markdown("**Tài khoản kho bạc <span style='color:red;'>*</span>**", unsafe_allow_html=True)
         st.session_state.form["tk_kb"] = st.text_input("Tài khoản KB", value=st.session_state.form["tk_kb"], label_visibility="collapsed")
-        
         st.markdown("**Mã kho bạc <span style='color:red;'>*</span>**", unsafe_allow_html=True)
         st.session_state.form["ma_kb"] = st.text_input("Mã kho bạc", value=st.session_state.form["ma_kb"], label_visibility="collapsed")
-        
         st.markdown("**Chủ tài khoản <span style='color:red;'>*</span>**", unsafe_allow_html=True)
         st.session_state.form["rep"] = st.text_input("Chủ tài khoản", value=st.session_state.form["rep"], label_visibility="collapsed")
         
@@ -163,17 +156,12 @@ if menu == "🏠 Cập nhật đơn vị":
 
     if st.button("🚀 GỬI DỮ LIỆU", type="primary", use_container_width=True):
         required_fields = {
-            "Mã số thuế": payload["mst"],
-            "Tên đơn vị": payload["ten_don_vi"],
-            "Mã QHNS": payload["ma_qhns"],
-            "Tài khoản kho bạc": payload["so_tkkb"],
-            "Mã kho bạc": payload["ma_kbnn"],
-            "Chủ tài khoản": payload["chu_tai_khoan"],
-            "Kế toán": payload["ke_toan"],
-            "Số điện thoại": payload["sdt_ke_toan"]
+            "Mã số thuế": payload["mst"], "Tên đơn vị": payload["ten_don_vi"],
+            "Mã QHNS": payload["ma_qhns"], "Tài khoản kho bạc": payload["so_tkkb"],
+            "Mã kho bạc": payload["ma_kbnn"], "Chủ tài khoản": payload["chu_tai_khoan"],
+            "Kế toán": payload["ke_toan"], "Số điện thoại": payload["sdt_ke_toan"]
         }
         empty_fields = [k for k, v in required_fields.items() if not v or v.strip() == ""]
-        
         if empty_fields:
             st.error(f"❌ Vui lòng nhập đầy đủ các thông tin bắt buộc: {', '.join(empty_fields)}")
         else:
@@ -187,18 +175,23 @@ if menu == "🏠 Cập nhật đơn vị":
                 st.success("✅ Đã gửi dữ liệu thành công!")
                 st.balloons()
 
+    # PHẦN XỬ LÝ GHI ĐÈ
     if st.session_state.confirm_overwrite:
-        st.warning(f"⚠️ Ghi đè MST {st.session_state.form['mst']}?")
+        st.warning(f"⚠️ MST {st.session_state.form['mst']} đã tồn tại. Bạn muốn ghi đè thông tin mới?")
         c_y, c_n = st.columns(2)
         with c_y:
-            if st.button("✅ ĐỒNG Ý GHI ĐÈ"):
+            if st.button("✅ ĐỒNG Ý GHI ĐÈ", use_container_width=True):
                 supabase.table("don_vi").update(payload).eq("mst", payload["mst"]).execute()
                 add_to_history(payload["mst"], payload["ten_don_vi"])
-                st.success("✅ Đã ghi đè thành công!")
                 st.session_state.confirm_overwrite = False
+                
+                # Hiển thị thông báo dài hơn
+                st.success(f"🎉 THÀNH CÔNG: Đã ghi đè dữ liệu cho đơn vị: {payload['ten_don_vi']} (MST: {payload['mst']})")
+                st.balloons()
+                time.sleep(3) # Dừng 3 giây để người dùng đọc thông báo
                 st.rerun()
         with c_n:
-            if st.button("❌ KHÔNG"):
+            if st.button("❌ KHÔNG", use_container_width=True):
                 st.session_state.confirm_overwrite = False
                 st.rerun()
 
