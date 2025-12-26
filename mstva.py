@@ -43,7 +43,6 @@ def load_from_history(mst):
     res = supabase.table("don_vi").select("*").eq("mst", mst).execute()
     if res.data:
         data = res.data[0]
-        # Khi load từ lịch sử, giữ lại những thông tin đã lưu trên Cloud
         st.session_state.form.update({
             "mst": data.get("mst", ""),
             "ten": data.get("ten_don_vi", ""),
@@ -98,6 +97,9 @@ with st.sidebar:
 
     st.sidebar.markdown("---")
     st.sidebar.info("📞 **Hỗ trợ kỹ thuật:**\n\nNguyễn Văn Ánh HN11\n\nĐT: **0969.338.332**")
+    
+    # HIỂN THỊ PHIÊN BẢN (VERSION) TẠI ĐÂY
+    st.sidebar.caption("📌 **Version: 1.0.0**")
 
 # --- 3. TRANG 1: CẬP NHẬT ĐƠN VỊ ---
 if menu == "🏠 Cập nhật đơn vị":
@@ -160,7 +162,6 @@ if menu == "🏠 Cập nhật đơn vị":
     }
 
     if st.button("🚀 GỬI DỮ LIỆU", type="primary", use_container_width=True):
-        # Kiểm tra tất cả các trường bắt buộc
         required_fields = {
             "Mã số thuế": payload["mst"],
             "Tên đơn vị": payload["ten_don_vi"],
