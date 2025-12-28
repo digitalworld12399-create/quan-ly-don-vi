@@ -16,7 +16,6 @@ supabase: Client = create_client(URL, KEY)
 # --- 2. CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Quản lý Đơn vị HN11", layout="wide")
 
-# CSS Tùy chỉnh (Giữ nguyên phong cách khoa học)
 st.markdown("""
     <style>
     .main { background-color: #f8f9fa; }
@@ -54,6 +53,12 @@ if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'trigger_reset' not in st.session_state: st.session_state.trigger_reset = False
 
 # --- 3. XỬ LÝ RESET & HÀM BỔ TRỢ ---
+def clean_mst(mst_string):
+    """Loại bỏ tất cả ký tự lạ, chỉ giữ lại số và dấu gạch ngang '-'"""
+    if not mst_string:
+        return ""
+    return re.sub(r'[^0-9\-]', '', mst_string)
+
 if st.session_state.trigger_reset:
     keep = ["ma_kb", "kt", "sdt_kt"]
     for key in list(st.session_state.form.keys()):
@@ -99,6 +104,8 @@ def save_data(payload, is_update=False):
     p_bar = st.progress(0, text="📡 Đang đồng bộ...")
     for i in range(100): time.sleep(0.005); p_bar.progress(i + 1)
     try:
+        # Làm sạch MST một lần cuối trước khi lưu vào DB
+        payload["mst"] = clean_mst(payload["mst"])
         if is_update: supabase.table("don_vi").update(payload).eq("mst", payload["mst"]).execute()
         else:
             payload["created_at"] = datetime.now().isoformat()
@@ -116,44 +123,32 @@ def confirm_overwrite_dialog(payload):
     if c1.button("✅ ĐỒNG Ý", type="primary", use_container_width=True): save_data(payload, is_update=True)
     if c2.button("❌ HỦY", use_container_width=True): st.rerun()
 
-# --- 7. SIDEBAR (THAY ĐỔI ICON TẠI ĐÂY) ---
+# --- 7. SIDEBAR ---
 with st.sidebar:
-    # Thay đổi sang icon Khiên bảo mật (🛡️) cho Quản trị
     st.markdown("<h2 style='text-align: center; color: #0d47a1;'>🛡️ HỆ THỐNG</h2>", unsafe_allow_html=True)
-    
-    # Thay đổi icon menu lựa chọn
     menu = st.radio("Menu", ["📝 Cập nhật đơn vị", "🗂️ Danh sách tổng hợp"], label_visibility="collapsed")
     st.divider()
-    
-    # Icon lịch sử
     st.markdown(f"⏳ **Lịch sử gần đây ({len(st.session_state.history)})**")
     if st.button("🧹 Làm mới phiên", use_container_width=True):
         st.session_state.history = []
         st.rerun()
-    
     for item in st.session_state.history:
         st.markdown(f"<p style='font-size: 0.85em; color: #546e7a; margin: 0;'>• {item}</p>", unsafe_allow_html=True)
-    
     st.divider()
-    # Icon hỗ trợ kỹ thuật
     st.markdown(f"""<div class="support-box">
             <p style="margin: 0; font-weight: bold; font-size: 0.9rem;">💎 Hỗ trợ kỹ thuật:</p>
             <p style="margin: 5px 0 0 5px; opacity: 0.9;">Nguyễn Văn Ánh HN11</p>
             <p style="margin: 0 0 0 5px; font-weight: bold;">📞 0969.338.332</p>
         </div>""", unsafe_allow_html=True)
-    st.markdown("<p style='color: #90a4ae; font-size: 0.8em; margin-top: 15px; text-align: center;'>🔖 Version: 1.0.7</p>", unsafe_allow_html=True)
-    
+    st.markdown("<p style='color: #90a4ae; font-size: 0.8em; margin-top: 15px; text-align: center;'>🔖 Version: 1.0.8</p>", unsafe_allow_html=True)
     if st.session_state.logged_in and st.button("🔒 Đăng xuất", use_container_width=True):
         st.session_state.logged_in = False; st.rerun()
 
 # --- 8. GIAO DIỆN CHÍNH ---
 if menu == "📝 Cập nhật đơn vị":
-    # Icon tiêu đề chính
     st.markdown("<h1 class='main-title'>🏦 QUẢN LÝ DỮ LIỆU ĐƠN VỊ</h1>", unsafe_allow_html=True)
-    
     c_guide, _ = st.columns([1, 2])
     with c_guide:
-        # Icon hướng dẫn
         with st.expander("💡 Hướng dẫn nhanh"):
             st.markdown("""<div class="guide-container"><div class="guide-text">
                 1. Nhập MST -> Lấy dữ liệu.<br>2. Kiểm tra Tên & Địa chỉ.<br>3. Xác nhận lại MST.<br>
@@ -165,25 +160,33 @@ if menu == "📝 Cập nhật đơn vị":
     
     if col_btn_fetch.button("🔍 LẤY DỮ LIỆU", type="primary", use_container_width=True):
         if mst_lookup:
+            # LÀM SẠCH DỮ LIỆU TRƯỚC KHI TRA CỨU
+            mst_cleaned = clean_mst(mst_lookup)
+            
             fetch_pbar = st.progress(0, text="📡 Đang quét dữ liệu...")
             for i in range(100): time.sleep(0.005); fetch_pbar.progress(i + 1)
-            st.session_state.form["mst"] = mst_lookup
-            res = supabase.table("don_vi").select("*").eq("mst", mst_lookup).execute()
+            
+            st.session_state.form["mst"] = mst_cleaned
+            res = supabase.table("don_vi").select("*").eq("mst", mst_cleaned).execute()
             found = False
             if res.data:
                 found = True
                 d = res.data[0]
                 st.session_state.form.update({"ten": d.get("ten_don_vi"), "dc": d.get("dia_chi"), "rep": d.get("chu_tai_khoan"), "qhns": d.get("ma_qhns"), "thue": d.get("co_quan_thue"), "ma_kb": d.get("ma_kbnn"), "tk_kb": d.get("so_tkkb"), "kt": d.get("ke_toan"), "sdt_kt": d.get("sdt_ke_toan")})
                 st.session_state.qhns_input = d.get("ma_qhns")
-            else: found = fetch_online_data(mst_lookup)
+            else: 
+                found = fetch_online_data(mst_cleaned)
+            
             fetch_pbar.empty()
-            if found: st.success("✅ Đã lấy dữ liệu!"); time.sleep(1); st.rerun()
-            else: st.error("❌ Không tìm thấy thông tin.")
+            if found: 
+                st.success(f"✅ Đã tìm thấy thông tin cho MST: {mst_cleaned}")
+                time.sleep(1); st.rerun()
+            else: 
+                st.error("❌ Không tìm thấy thông tin.")
 
     # Form nhập liệu
     st.markdown("<p class='field-label'>🏢 Tên đơn vị <span class='red-star'>*</span></p>", unsafe_allow_html=True)
     st.session_state.form["ten"] = st.text_input("ten_in", value=st.session_state.form["ten"], label_visibility="collapsed")
-    
     st.markdown("<p class='field-label'>📍 Địa chỉ trụ sở</p>", unsafe_allow_html=True)
     st.session_state.form["dc"] = st.text_input("dc_in", value=st.session_state.form["dc"], label_visibility="collapsed")
 
@@ -192,7 +195,10 @@ if menu == "📝 Cập nhật đơn vị":
         st.markdown("<p class='field-label'>🆔 Mã QHNS <span class='red-star'>*</span></p>", unsafe_allow_html=True)
         st.text_input("qhns_w", max_chars=7, key="qhns_input", on_change=update_tk_kb, label_visibility="collapsed")
         st.markdown("<p class='field-label'>🔢 MST xác nhận <span class='red-star'>*</span></p>", unsafe_allow_html=True)
-        st.session_state.form["mst"] = st.text_input("mst_in", value=st.session_state.form["mst"], label_visibility="collapsed")
+        # MST trong form cũng tự động được làm sạch
+        raw_mst_val = st.text_input("mst_in", value=st.session_state.form["mst"], label_visibility="collapsed")
+        st.session_state.form["mst"] = clean_mst(raw_mst_val)
+        
         st.markdown("<p class='field-label'>🏪 Mã kho bạc <span class='red-star'>*</span></p>", unsafe_allow_html=True)
         st.session_state.form["ma_kb"] = st.text_input("kb_in", value=st.session_state.form["ma_kb"], label_visibility="collapsed")
         st.markdown("<p class='field-label'>👤 Kế toán viên <span class='red-star'>*</span></p>", unsafe_allow_html=True)
@@ -208,9 +214,9 @@ if menu == "📝 Cập nhật đơn vị":
         st.session_state.form["sdt_kt"] = st.text_input("sdt_in", value=st.session_state.form["sdt_kt"], label_visibility="collapsed")
 
     st.write("---")
-    # Icon nút gửi dữ liệu
     if st.button("📤 CẬP NHẬT DỮ LIỆU LÊN HỆ THỐNG", type="primary", use_container_width=True):
-        payload = {"mst": st.session_state.form["mst"], "ten_don_vi": st.session_state.form["ten"], "dia_chi": st.session_state.form["dc"] or "Đang cập nhật", "ma_qhns": st.session_state.form["qhns"], "chu_tai_khoan": st.session_state.form["rep"], "ma_kbnn": st.session_state.form["ma_kb"], "so_tkkb": st.session_state.form["tk_kb"], "ke_toan": st.session_state.form["kt"], "sdt_ke_toan": st.session_state.form["sdt_kt"], "co_quan_thue": st.session_state.form["thue"], "last_update": datetime.now().isoformat()}
+        final_mst = clean_mst(st.session_state.form["mst"])
+        payload = {"mst": final_mst, "ten_don_vi": st.session_state.form["ten"], "dia_chi": st.session_state.form["dc"] or "Đang cập nhật", "ma_qhns": st.session_state.form["qhns"], "chu_tai_khoan": st.session_state.form["rep"], "ma_kbnn": st.session_state.form["ma_kb"], "so_tkkb": st.session_state.form["tk_kb"], "ke_toan": st.session_state.form["kt"], "sdt_ke_toan": st.session_state.form["sdt_kt"], "co_quan_thue": st.session_state.form["thue"], "last_update": datetime.now().isoformat()}
         if not all([payload["mst"], payload["ten_don_vi"], payload["ma_qhns"]]): st.error("❌ Thiếu thông tin bắt buộc (*)")
         else:
             check = supabase.table("don_vi").select("mst").eq("mst", payload["mst"]).execute()
