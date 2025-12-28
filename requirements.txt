@@ -4,3 +4,4 @@ cloudscraper
 beautifulsoup4
 supabase
 openpyxl
+xlsxwriter
