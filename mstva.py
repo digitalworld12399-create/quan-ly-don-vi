@@ -104,7 +104,7 @@ with st.sidebar:
         st.write("Chưa có dữ liệu mới.")
     
     st.divider()
-    st.link_button("🚀 ĐĂNG NHẬP QUẢN TRỊ", "https://your-admin.streamlit.app", use_container_width=True)
+    st.link_button("🚀 ĐĂNG NHẬP QUẢN TRỊ", "https://quan-ly-don-vi-mzbftixs3wct4ammhpdmvq.streamlit.app", use_container_width=True)
 
 if st.session_state.show_confirm:
     st.warning(f"### ⚠️ XÁC NHẬN GHI ĐÈ\nMST {st.session_state.form['mst']} đã tồn tại. Bạn muốn cập nhật?")
