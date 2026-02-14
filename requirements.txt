@@ -1,3 +1,9 @@
+streamlit
+pandas
+supabase
+plotly
+fpdf2
+openpyxl
 # --- Thư viện chính ---
 streamlit
 pandas
