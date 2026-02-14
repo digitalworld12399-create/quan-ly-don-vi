@@ -1,7 +1,19 @@
+# --- Thư viện chính ---
 streamlit
 pandas
+supabase
+
+# --- Thu thập và xử lý dữ liệu ---
 cloudscraper
 beautifulsoup4
-supabase
 openpyxl
 xlsxwriter
+
+# --- Xuất file PDF (Bắt buộc để chạy hàm VietPDF) ---
+fpdf2
+
+# --- Đồ họa và Biểu đồ (Bắt buộc để chạy biểu đồ hình tròn) ---
+plotly
+
+# --- Xử lý HTTP (Bổ sung để hỗ trợ supabase/scraper) ---
+requests
