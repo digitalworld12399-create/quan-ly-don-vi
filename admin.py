@@ -96,7 +96,7 @@ try:
 
         # SIDEBAR: Bộ lọc & Cập nhật
         with st.sidebar:
-            st.markdown("### 🛡️ HN11 ADMIN\n**Admin:** Nguyễn Văn Ánh\n💡0969.338.332")
+            st.markdown("### 🛡️ HN11 ADMIN\n**Admin:** Nguyễn Văn Ánh \n###💡0969.338.332")
             st.divider()
             st.markdown("#### 📍 BỘ LỌC ĐỊA BÀN")
             sel_tinh = st.selectbox("Chọn Tỉnh/Thành:", ["Tất cả"] + sorted(df_raw['tinh_thanh'].unique()))
