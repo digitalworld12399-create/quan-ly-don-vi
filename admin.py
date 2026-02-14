@@ -42,9 +42,9 @@ def tach_dia_chi(address):
 class VietPDF(FPDF):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.font_path = "arial.ttf" # Cần có file này trong cùng thư mục
+        self.font_path = "arial.ttf" # 
         if os.path.exists(self.font_path):
-            # Đăng ký cả font thường và font đậm để tránh lỗi vietfontB
+            # Đăng ký cả font 
             self.add_font('VietFont', '', self.font_path)
             self.add_font('VietFont', 'B', self.font_path)
             self.vfont = 'VietFont'
@@ -73,7 +73,7 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    _, col_login, _ = st.columns([1.2, 1, 1.2]) # Điều chỉnh kích thước khung login vừa vặn
+    _, col_login, _ = st.columns([1.2, 1, 1.2]) # Điều chỉnh kích thước khung login
     with col_login:
         st.write("")
         with st.container(border=True):
@@ -96,7 +96,7 @@ try:
 
         # SIDEBAR: Bộ lọc & Cập nhật
         with st.sidebar:
-            st.markdown("### 🛡️ HN11 ADMIN\n**Admin:** Nguyễn Văn Ánh"\n💡0969.338.332)
+            st.markdown("### 🛡️ HN11 ADMIN\n**Admin:** Nguyễn Văn Ánh\n💡0969.338.332")
             st.divider()
             st.markdown("#### 📍 BỘ LỌC ĐỊA BÀN")
             sel_tinh = st.selectbox("Chọn Tỉnh/Thành:", ["Tất cả"] + sorted(df_raw['tinh_thanh'].unique()))
