@@ -13,7 +13,7 @@ URL = "https://niqehefvnzwbfwafncej.supabase.co"
 KEY = "sb_publishable_3clZvjfg6EoOxZQ0QzsBOQ_m2v9KiKN"
 supabase: Client = create_client(URL, KEY)
 
-# Cấu hình giao diện rộng, chuyên nghiệp
+# Cấu hình giao diện
 st.set_page_config(page_title="HN11 - Hệ thống Quản trị", layout="wide", page_icon="🛡️")
 
 # --- 2. LOGIC TÌM KIẾM & XỬ LÝ CHUỖI ---
@@ -38,7 +38,7 @@ def tach_dia_chi(address):
     xa = xa_match.group(0) if xa_match else "Không rõ"
     return xa, tinh
 
-# --- 3. XỬ LÝ PDF (ĐÃ FIX LỖI VIETFONTB & BINARY FORMAT) ---
+# --- 3. XỬ LÝ PDF () ---
 class VietPDF(FPDF):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -96,7 +96,7 @@ try:
 
         # SIDEBAR: Bộ lọc & Cập nhật
         with st.sidebar:
-            st.markdown("### 🛡️ HN11 ADMIN\n**Admin:** Nguyễn Văn Ánh")
+            st.markdown("### 🛡️ HN11 ADMIN\n**Admin:** Nguyễn Văn Ánh"\n💡0969.338.332)
             st.divider()
             st.markdown("#### 📍 BỘ LỌC ĐỊA BÀN")
             sel_tinh = st.selectbox("Chọn Tỉnh/Thành:", ["Tất cả"] + sorted(df_raw['tinh_thanh'].unique()))
@@ -139,7 +139,7 @@ try:
 
         # --- XEM TRƯỚC VỚI MÀU SẮC PHÂN LOẠI & KÍCH THƯỚC VỪA PHẢI ---
         st.divider()
-        st.subheader("📋 DASHBOARD XEM TRƯỚC CHI TIẾT (HIỂN THỊ TOÀN BỘ DATA)")
+        st.subheader("📋 XEM TRƯỚC CHI TIẾT (HIỂN THỊ TOÀN BỘ DATA)")
         selected = st.selectbox("🎯 Chọn đơn vị cụ thể:", ["-- Vui lòng chọn --"] + df_filtered['ten_don_vi'].tolist())
         
         if selected != "-- Vui lòng chọn --":
@@ -174,5 +174,5 @@ try:
                     st.download_button("📊 XUẤT EXCEL DANH SÁCH LỌC", buffer.getvalue(), "HN11_Report.xlsx", width='stretch')
 
 except Exception as e:
-    # Đã sửa lỗi SyntaxError dòng 138
+    # 
     st.error(f"Hệ thống gặp sự cố: {e}")
