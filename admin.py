@@ -38,13 +38,12 @@ def tach_dia_chi(address):
     xa = xa_match.group(0) if xa_match else "Không rõ"
     return xa, tinh
 
-# --- 3. XỬ LÝ PDF () ---
+# --- 3. XỬ LÝ PDF ---
 class VietPDF(FPDF):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.font_path = "arial.ttf" # 
+        self.font_path = "arial.ttf" 
         if os.path.exists(self.font_path):
-            # Đăng ký cả font 
             self.add_font('VietFont', '', self.font_path)
             self.add_font('VietFont', 'B', self.font_path)
             self.vfont = 'VietFont'
@@ -59,21 +58,20 @@ def tao_phieu_pdf(row):
     pdf.set_text_color(30, 144, 255)
     pdf.cell(0, 15, "PHIẾU CHI TIẾT THÔNG TIN ĐƠN VỊ", align='C', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.ln(8)
-    # Lặp in toàn bộ dữ liệu có trong data
     for col, val in row.items():
         if col in ['xa_phuong', 'tinh_thanh']: continue
         pdf.set_fill_color(240, 240, 240); pdf.set_font(pdf.vfont, 'B', 10)
         pdf.cell(60, 10, f" {str(col).upper()}", border=1, fill=True)
         pdf.set_fill_color(255, 255, 255); pdf.set_font(pdf.vfont, '', 10)
         pdf.multi_cell(0, 10, f" {str(val)}", border=1, align='L', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    return bytes(pdf.output()) # Fix lỗi Invalid binary data format
+    return bytes(pdf.output())
 
-# --- 4. GIAO DIỆN ĐĂNG NHẬP (KHUNG VỪA PHẢI) ---
+# --- 4. GIAO DIỆN ĐĂNG NHẬP ---
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    _, col_login, _ = st.columns([1.2, 1, 1.2]) # Điều chỉnh kích thước khung login
+    _, col_login, _ = st.columns([1.2, 1, 1.2])
     with col_login:
         st.write("")
         with st.container(border=True):
@@ -94,21 +92,33 @@ try:
         df_raw = pd.DataFrame(res.data)
         df_raw[['xa_phuong', 'tinh_thanh']] = df_raw['dia_chi'].apply(lambda x: pd.Series(tach_dia_chi(x)))
 
-        # SIDEBAR: Bộ lọc & Cập nhật
+        # SIDEBAR: Thông tin Admin & Bộ lọc
         with st.sidebar:
-            st.markdown("### 🛡️ HN11 ADMIN\n**Admin:** Nguyễn Văn Ánh \n###💡0969.338.332")
+            # HIỂN THỊ THÔNG TIN ADMIN ĐẸP MẮT
+            st.markdown("""
+                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 15px; border-left: 5px solid #0083B8; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #1f77b4;">🛡️ HN11 ADMIN</h3>
+                    <p style="margin: 5px 0 0 0; font-weight: bold; color: #31333F;">👤 Quản trị: <span style="color: #FF4B4B;">Nguyễn Văn Ánh</span></p>
+                    <div style="display: flex; align-items: center; margin-top: 10px; background: white; padding: 5px 10px; border-radius: 8px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05);">
+                        <span style="font-size: 18px; margin-right: 10px;">💡</span>
+                        <code style="color: #0083B8; font-size: 16px; font-weight: bold;">0969.338.332</code>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+            
             st.divider()
             st.markdown("#### 📍 BỘ LỌC ĐỊA BÀN")
             sel_tinh = st.selectbox("Chọn Tỉnh/Thành:", ["Tất cả"] + sorted(df_raw['tinh_thanh'].unique()))
             df_lv2 = df_raw[df_raw['tinh_thanh'] == sel_tinh] if sel_tinh != "Tất cả" else df_raw
             sel_xa = st.selectbox("Chọn Xã/Phường:", ["Tất cả"] + sorted(df_lv2['xa_phuong'].unique()))
+            
             st.divider()
             st.link_button("🔄 KIỂM TRA CẬP NHẬT", "https://your-storage-link.com/updates", width='stretch')
             if st.button("🚪 Đăng xuất", width='stretch'):
                 st.session_state.authenticated = False
                 st.rerun()
 
-        # Áp dụng bộ lọc và TÌM KIẾM (Đã khôi phục và tối ưu)
+        # Áp dụng bộ lọc và TÌM KIẾM
         df_filtered = df_lv2 if sel_xa == "Tất cả" else df_lv2[df_lv2['xa_phuong'] == sel_xa]
         
         st.title("📊 HỆ THỐNG QUẢN TRỊ DỮ LIỆU")
@@ -119,7 +129,7 @@ try:
             mask = df_filtered.apply(lambda r: r.astype(str).apply(loai_bo_dau).str.contains(q_norm).any(), axis=1)
             df_filtered = df_filtered[mask]
 
-        # --- THỐNG KÊ BIỂU ĐỒ HÌNH TRÒN (Đã sửa logic hiển thị đúng) ---
+        # --- THỐNG KÊ BIỂU ĐỒ ---
         st.divider()
         c_chart, c_metric = st.columns([2, 1])
         with c_chart:
@@ -137,7 +147,7 @@ try:
 
         st.dataframe(df_filtered, width='stretch', hide_index=True)
 
-        # --- XEM TRƯỚC VỚI MÀU SẮC PHÂN LOẠI & KÍCH THƯỚC VỪA PHẢI ---
+        # --- XEM TRƯỚC VÀ XUẤT DỮ LIỆU ---
         st.divider()
         st.subheader("📋 XEM TRƯỚC CHI TIẾT (HIỂN THỊ TOÀN BỘ DATA)")
         selected = st.selectbox("🎯 Chọn đơn vị cụ thể:", ["-- Vui lòng chọn --"] + df_filtered['ten_don_vi'].tolist())
@@ -147,12 +157,10 @@ try:
             with st.container(border=True):
                 st.markdown(f"#### 🏛️ {row_data['ten_don_vi'].upper()}")
                 
-                # Hiển thị đa cột với màu sắc chuyên nghiệp
-                p_cols = st.columns(3) # 3 cột giúp khung hiển thị vừa vặn, không bị nhỏ
+                p_cols = st.columns(3)
                 for idx, (key, val) in enumerate(row_data.items()):
                     with p_cols[idx % 3]:
                         label = key.replace('_', ' ').upper()
-                        # Phân loại màu sắc theo nội dung
                         if any(x in key for x in ['mst', 'ma', 'id']):
                             st.info(f"**{label}:**\n{val}")
                         elif any(x in key for x in ['ten', 'chu', 'ke_toan']):
@@ -161,7 +169,6 @@ try:
                             st.success(f"**{label}:**\n{val}")
                 
                 st.divider()
-                # Công cụ tải xuống
                 btn_pdf, btn_xlsx = st.columns(2)
                 with btn_pdf:
                     pdf_bytes = tao_phieu_pdf(row_data)
@@ -174,5 +181,4 @@ try:
                     st.download_button("📊 XUẤT EXCEL DANH SÁCH LỌC", buffer.getvalue(), "HN11_Report.xlsx", width='stretch')
 
 except Exception as e:
-    # 
     st.error(f"Hệ thống gặp sự cố: {e}")
