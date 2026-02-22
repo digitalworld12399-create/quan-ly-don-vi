@@ -13,7 +13,7 @@ jobs:
       - name: Ping Multiple Streamlit Apps
         run: |
           curl -I https://quan-ly-don-vi-fjkqqt42dehhosixg4r3zy.streamlit.app/
-                        
+          curl -I https://quan-ly-don-vi-mzbftixs3wct4ammhpdmvq.streamlit.app/             
       - name: Check for Updates
         run: |
           echo "Kiểm tra: [Link thư mục]"
