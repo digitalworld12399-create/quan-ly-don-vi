@@ -93,70 +93,74 @@ try:
         # SIDEBAR
         with st.sidebar:
             st.markdown("### 🛡️ HN11 ADMIN PRO")
-            st.caption("Quản trị viên: **Nguyễn Văn Ánh**")
+            st.caption("Admin: **Nguyễn Văn Ánh**")
             st.divider()
             st.markdown("#### 🔍 BỘ LỌC KHU VỰC")
-            sel_tinh = st.selectbox("Chọn Tỉnh/Thành:", ["Tất cả"] + sorted(df_raw['tinh_thanh'].unique()))
-            
+            sel_tinh = st.selectbox("Tỉnh/Thành:", ["Tất cả"] + sorted(df_raw['tinh_thanh'].unique()))
             df_lv2 = df_raw[df_raw['tinh_thanh'] == sel_tinh] if sel_tinh != "Tất cả" else df_raw
-            sel_xa = st.selectbox("Chọn Xã/Phường:", ["Tất cả"] + sorted(df_lv2['xa_phuong'].unique()))
+            sel_xa = st.selectbox("Xã/Phường:", ["Tất cả"] + sorted(df_lv2['xa_phuong'].unique()))
             
             st.divider()
-            # Nút cập nhật theo yêu cầu lưu trữ
             st.link_button("🔄 KIỂM TRA CẬP NHẬT", "https://your-storage-link.com/updates", use_container_width=True)
             if st.button("🚪 Đăng xuất", use_container_width=True):
                 st.session_state.authenticated = False
                 st.rerun()
 
-        # XỬ LÝ DỮ LIỆU LỌC
+        # Dữ liệu sau bộ lọc Sidebar
         df_f = df_lv2 if sel_xa == "Tất cả" else df_lv2[df_lv2['xa_phuong'] == sel_xa]
         
-        # --- PHẦN THỐNG KÊ (DASHBOARD) ---
-        st.markdown("## 📊 HỆ THỐNG QUẢN LÝ DỮ LIỆU")
-        
+        # --- TIÊU ĐỀ & METRICS ---
+        st.markdown("## 📊 HỆ THỐNG QUẢN LÝ HN11")
         m1, m2, m3 = st.columns(3)
-        m1.metric("📍 Kết quả lọc", f"{len(df_f)} đơn vị", help="Số lượng đơn vị khớp với bộ lọc hiện tại")
-        m2.metric("🌎 Tổng hệ thống", f"{len(df_raw)}", delta=f"{len(df_f) - len(df_raw)}", delta_color="off")
-        m3.metric("📈 Tỷ lệ hiển thị", f"{(len(df_f)/len(df_raw)*100):.1f}%")
+        m1.metric("📍 Kết quả lọc", f"{len(df_f)} đơn vị")
+        m2.metric("🌎 Tổng hệ thống", f"{len(df_raw)}")
+        m3.metric("📈 Tỷ lệ", f"{(len(df_f)/len(df_raw)*100):.1f}%")
 
-        # BIỂU ĐỒ SINH ĐỘNG
-        col_chart, col_search = st.columns([2, 1])
+        # --- BỐ CỤC MỚI: TÌM KIẾM BÊN TRÁI | THỐNG KÊ BÊN PHẢI ---
+        col_search, col_chart = st.columns([1, 2])
         
-        with col_chart:
-            with st.container(border=True):
-                st.markdown("**Phân bổ đơn vị theo Xã/Phường (Đang lọc)**")
-                chart_data = df_f['xa_phuong'].value_counts().reset_index()
-                chart_data.columns = ['Khu vực', 'Số lượng']
-                fig = px.bar(chart_data.head(10), x='Khu vực', y='Số lượng', 
-                             color='Số lượng', color_continuous_scale='Blues',
-                             height=250, text_auto=True)
-                fig.update_layout(margin=dict(l=0,r=0,t=20,b=0), coloraxis_showscale=False)
-                st.plotly_chart(fig, use_container_width=True)
-
         with col_search:
             with st.container(border=True):
-                st.markdown("**Tìm kiếm nhanh**")
-                q = st.text_input("🔎 Nhập từ khóa...", placeholder="MST, Tên, SĐT...", label_visibility="collapsed")
+                st.markdown("#### 🔎 Tìm kiếm nhanh")
+                q = st.text_input("Nhập từ khóa bất kỳ...", placeholder="Tên, MST, SĐT...", label_visibility="collapsed")
                 if q:
                     q_n = loai_bo_dau(q)
                     mask = df_f.apply(lambda r: r.astype(str).apply(loai_bo_dau).str.contains(q_n).any(), axis=1)
                     df_f = df_f[mask]
-                st.info(f"Tìm thấy: {len(df_f)} kết quả")
+                
+                # Hiển thị thông tin hỗ trợ tìm kiếm
+                st.write("")
+                st.info(f"Đang hiển thị **{len(df_f)}** đơn vị phù hợp.")
+                if q:
+                    st.caption(f"Đang tìm kiếm với từ khóa: '{q}'")
 
-        # BẢNG DỮ LIỆU CHÍNH
+        with col_chart:
+            with st.container(border=True):
+                st.markdown("#### 📉 Phân bổ khu vực lọc")
+                # Thống kê top 8 xã phường để biểu đồ không bị quá dày
+                chart_data = df_f['xa_phuong'].value_counts().reset_index().head(8)
+                chart_data.columns = ['Khu vực', 'Số lượng']
+                
+                fig = px.bar(chart_data, x='Số lượng', y='Khu vực', 
+                             orientation='h', # Đổi sang thanh ngang cho dễ đọc tên xã dài
+                             color='Số lượng', color_continuous_scale='GnBu',
+                             height=230, text_auto=True)
+                fig.update_layout(margin=dict(l=0,r=10,t=0,b=0), coloraxis_showscale=False, yaxis={'categoryorder':'total ascending'})
+                st.plotly_chart(fig, use_container_width=True)
+
+        # BẢNG DỮ LIỆU
         st.dataframe(df_f, use_container_width=True, hide_index=True)
 
         # --- CHI TIẾT ĐƠN VỊ ---
         st.divider()
-        st.subheader("📋 CHI TIẾT ĐƠN VỊ ĐƯỢC CHỌN")
-        selected = st.selectbox("🎯 Chọn đơn vị để xem chi tiết:", ["-- Vui lòng chọn --"] + df_f['ten_don_vi'].tolist())
+        st.subheader("📋 CHI TIẾT ĐƠN VỊ")
+        selected = st.selectbox("🎯 Chọn đơn vị cụ thể:", ["-- Vui lòng chọn --"] + df_f['ten_don_vi'].tolist())
         
         if selected != "-- Vui lòng chọn --":
             row = df_f[df_f['ten_don_vi'] == selected].iloc[0]
             with st.container(border=True):
                 st.markdown(f"### 🏢 {row['ten_don_vi'].upper()}")
                 
-                # Hiển thị thông tin dạng Grid
                 items = list(row.items())
                 for i in range(0, len(items), 3):
                     cols = st.columns(3)
@@ -165,7 +169,7 @@ try:
                             k, v = items[i + j]
                             with cols[j]:
                                 st.markdown(f"**📌 {k.replace('_', ' ').upper()}**")
-                                st.code(v if v else "N/A", language=None)
+                                st.success(v if v else "Trống")
                 
                 st.divider()
                 c1, c2 = st.columns(2)
