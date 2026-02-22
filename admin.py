@@ -69,7 +69,7 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    _, col_login, _ = st.columns([1.2, 1, 1.2])
+    _, col_login, _ = st.columns([1.5, 1, 1.5])
     with col_login:
         st.write("")
         with st.container(border=True):
@@ -95,7 +95,7 @@ try:
             st.markdown("### 🛡️ HN11 ADMIN PRO")
             st.caption("Admin: **Nguyễn Văn Ánh**")
             st.divider()
-            st.markdown("#### 🔍 BỘ LỌC KHU VỰC")
+            st.markdown("#### 🔍 BỘ LỌC VÙNG")
             sel_tinh = st.selectbox("Tỉnh/Thành:", ["Tất cả"] + sorted(df_raw['tinh_thanh'].unique()))
             df_lv2 = df_raw[df_raw['tinh_thanh'] == sel_tinh] if sel_tinh != "Tất cả" else df_raw
             sel_xa = st.selectbox("Xã/Phường:", ["Tất cả"] + sorted(df_lv2['xa_phuong'].unique()))
@@ -106,61 +106,62 @@ try:
                 st.session_state.authenticated = False
                 st.rerun()
 
-        # Dữ liệu sau bộ lọc Sidebar
+        # Dữ liệu lọc cơ bản
         df_f = df_lv2 if sel_xa == "Tất cả" else df_lv2[df_lv2['xa_phuong'] == sel_xa]
         
-        # --- TIÊU ĐỀ & METRICS ---
-        st.markdown("## 📊 HỆ THỐNG QUẢN LÝ HN11")
-        m1, m2, m3 = st.columns(3)
-        m1.metric("📍 Kết quả lọc", f"{len(df_f)} đơn vị")
-        m2.metric("🌎 Tổng hệ thống", f"{len(df_raw)}")
-        m3.metric("📈 Tỷ lệ", f"{(len(df_f)/len(df_raw)*100):.1f}%")
-
-        # --- BỐ CỤC MỚI: TÌM KIẾM BÊN TRÁI | THỐNG KÊ BÊN PHẢI ---
-        col_search, col_chart = st.columns([1, 2])
+        # --- TIÊU ĐỀ CHÍNH ---
+        st.markdown("## 📊 HỆ THỐNG QUẢN LÝ DỮ LIỆU HN11")
+        
+        # --- THAY ĐỔI TỶ LỆ: TÌM KIẾM (1) : THỐNG KÊ (3) ---
+        col_search, col_chart = st.columns([1, 3])
         
         with col_search:
             with st.container(border=True):
-                st.markdown("#### 🔎 Tìm kiếm nhanh")
-                q = st.text_input("Nhập từ khóa bất kỳ...", placeholder="Tên, MST, SĐT...", label_visibility="collapsed")
+                st.markdown("##### 🔎 Tìm kiếm")
+                q = st.text_input("Từ khóa...", placeholder="MST, Tên...", label_visibility="collapsed")
                 if q:
                     q_n = loai_bo_dau(q)
                     mask = df_f.apply(lambda r: r.astype(str).apply(loai_bo_dau).str.contains(q_n).any(), axis=1)
                     df_f = df_f[mask]
                 
-                # Hiển thị thông tin hỗ trợ tìm kiếm
-                st.write("")
-                st.info(f"Đang hiển thị **{len(df_f)}** đơn vị phù hợp.")
-                if q:
-                    st.caption(f"Đang tìm kiếm với từ khóa: '{q}'")
+                st.divider()
+                st.metric("Kết quả lọc", f"{len(df_f)}")
+                st.caption(f"Tổng: {len(df_raw)}")
 
         with col_chart:
             with st.container(border=True):
-                st.markdown("#### 📉 Phân bổ khu vực lọc")
-                # Thống kê top 8 xã phường để biểu đồ không bị quá dày
-                chart_data = df_f['xa_phuong'].value_counts().reset_index().head(8)
-                chart_data.columns = ['Khu vực', 'Số lượng']
+                # Tạo 3 cột nhỏ bên trong khu vực thống kê để hiển thị các số liệu phụ
+                stat_1, stat_2, chart_area = st.columns([1, 1, 3])
+                with stat_1:
+                    st.metric("Tỷ lệ hiển thị", f"{(len(df_f)/len(df_raw)*100):.1f}%")
+                with stat_2:
+                    st.metric("Vùng lọc", sel_xa if sel_xa != "Tất cả" else "Toàn tỉnh")
                 
-                fig = px.bar(chart_data, x='Số lượng', y='Khu vực', 
-                             orientation='h', # Đổi sang thanh ngang cho dễ đọc tên xã dài
-                             color='Số lượng', color_continuous_scale='GnBu',
-                             height=230, text_auto=True)
-                fig.update_layout(margin=dict(l=0,r=10,t=0,b=0), coloraxis_showscale=False, yaxis={'categoryorder':'total ascending'})
-                st.plotly_chart(fig, use_container_width=True)
+                with chart_area:
+                    # Biểu đồ thanh hiển thị phân bổ xã phường
+                    chart_data = df_f['xa_phuong'].value_counts().reset_index().head(5)
+                    chart_data.columns = ['Khu vực', 'SL']
+                    fig = px.bar(chart_data, x='SL', y='Khu vực', orientation='h',
+                                 color='SL', color_continuous_scale='Blues',
+                                 height=120, text_auto=True)
+                    fig.update_layout(margin=dict(l=0,r=0,t=0,b=0), coloraxis_showscale=False, 
+                                      xaxis_visible=False, yaxis_title=None)
+                    st.plotly_chart(fig, use_container_width=True)
 
-        # BẢNG DỮ LIỆU
+        # BẢNG DỮ LIỆU CHÍNH
         st.dataframe(df_f, use_container_width=True, hide_index=True)
 
         # --- CHI TIẾT ĐƠN VỊ ---
         st.divider()
-        st.subheader("📋 CHI TIẾT ĐƠN VỊ")
-        selected = st.selectbox("🎯 Chọn đơn vị cụ thể:", ["-- Vui lòng chọn --"] + df_f['ten_don_vi'].tolist())
+        st.subheader("📋 THÔNG TIN CHI TIẾT")
+        selected = st.selectbox("🎯 Chọn đơn vị:", ["-- Chọn đơn vị --"] + df_f['ten_don_vi'].tolist())
         
-        if selected != "-- Vui lòng chọn --":
+        if selected != "-- Chọn đơn vị --":
             row = df_f[df_f['ten_don_vi'] == selected].iloc[0]
             with st.container(border=True):
-                st.markdown(f"### 🏢 {row['ten_don_vi'].upper()}")
+                st.markdown(f"#### 🏢 {row['ten_don_vi'].upper()}")
                 
+                # Hiển thị 3 cột thông tin
                 items = list(row.items())
                 for i in range(0, len(items), 3):
                     cols = st.columns(3)
@@ -169,7 +170,7 @@ try:
                             k, v = items[i + j]
                             with cols[j]:
                                 st.markdown(f"**📌 {k.replace('_', ' ').upper()}**")
-                                st.success(v if v else "Trống")
+                                st.info(v if v else "Chưa có dữ liệu")
                 
                 st.divider()
                 c1, c2 = st.columns(2)
@@ -183,4 +184,4 @@ try:
                     st.download_button("📊 XUẤT EXCEL DANH SÁCH", towrite.getvalue(), "HN11_Export.xlsx", use_container_width=True)
 
 except Exception as e:
-    st.error(f"🚨 Lỗi hệ thống: {e}")
+    st.error(f"🚨 Lỗi: {e}")
