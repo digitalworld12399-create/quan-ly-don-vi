@@ -2,18 +2,22 @@ name: Wake Up My Streamlit Apps
 
 on:
   schedule:
-    # Chạy mỗi 4 tiếng một lần (UTC)
+    # Chạy mỗi 4 tiếng (như cũ) hoặc bạn có thể chỉnh thành '0 */2 * * *' để chắc chắn hơn
     - cron: '0 */4 * * *'
-  workflow_dispatch: # Tạo nút bấm chạy thủ công
+  workflow_dispatch: # Cho phép bấm chạy thủ công
 
 jobs:
-  ping_apps:
+  ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Multiple Streamlit Apps
+      - name: Ping All Streamlit Apps
         run: |
-          curl -I https://quan-ly-don-vi-fjkqqt42dehhosixg4r3zy.streamlit.app/
-          curl -I https://quan-ly-don-vi-mzbftixs3wct4ammhpdmvq.streamlit.app/             
-      - name: Check for Updates
-        run: |
-          echo "Kiểm tra: [Link thư mục]"
+          # Thêm -L để tự động chuyển hướng (Follow Redirects)
+          # Thêm -s để chạy chế độ im lặng, đỡ rối log
+          # Thêm --connect-timeout để tránh treo lệnh
+          
+          echo "Pinging App 1..."
+          curl -ILs --connect-timeout 10 https://quan-ly-don-vi-fjkqqt42dehhosixg4r3zy.streamlit.app | grep "HTTP/"
+          
+          echo "Pinging App 2..."
+          curl -ILs --connect-timeout 10 https://quan-ly-don-vi-mzbftixs3wct4ammhpdmvq.streamlit.app | grep "HTTP/"
