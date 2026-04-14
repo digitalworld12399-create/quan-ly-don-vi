@@ -1,0 +1,24 @@
+name: Wake Up Streamlit App
+
+on:
+  schedule:
+    - cron: '0 */2 * * *' # Chạy mỗi 2 tiếng
+  workflow_dispatch:      # Nút bấm để chạy thử thủ công
+
+jobs:
+  ping_app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run wake up script
+        run: python wake_up.py
