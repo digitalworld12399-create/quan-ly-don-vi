@@ -1,7 +1,7 @@
 import requests
 
 # Thay link app của bạn vào đây
-URL = "https://your-app-name.streamlit.app/"
+URL = "https://quan-ly-don-vi-fjkqqt42dehhosixg4r3zy.streamlit.app/"
 
 def wake_up():
     try:
