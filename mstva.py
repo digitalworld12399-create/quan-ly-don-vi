@@ -181,7 +181,7 @@ with col2:
     f["tk_kb"] = st.text_input("f6", value=f["tk_kb"], label_visibility="collapsed")
     st.markdown('<p class="field-label">🏛️ Mã Kho bạc <span class="red-star">*</span></p>', unsafe_allow_html=True)
     f["ma_kb"] = st.text_input("f7", value=f["ma_kb"], label_visibility="collapsed")
-    st.markdown('<p class="field-label">🧾 Cơ quan thuế</p>', unsafe_allow_html=True)
+    st.markdown('<p class="field-label">🧾 Mã số máy</p>', unsafe_allow_html=True)
     f["thue"] = st.text_input("f8", value=f["thue"], label_visibility="collapsed")
 
 with col3:
