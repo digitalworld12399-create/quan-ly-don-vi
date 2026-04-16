@@ -165,7 +165,7 @@ with col1:
     f["mst"] = st.text_input("f2", value=f["mst"], label_visibility="collapsed")
     st.markdown('<p class="field-label">📍 Địa chỉ <span class="red-star">*</span></p>', unsafe_allow_html=True)
     f["dc"] = st.text_input("f3", value=f["dc"], label_visibility="collapsed")
-    st.markdown('<p class="field-label">💻 Sản phẩm</p>', unsafe_allow_html=True)
+    st.markdown('<p class="field-label">💻 Huyện cũ</p>', unsafe_allow_html=True)
     list_sp = ["Kế toán hành chính", "QLTS", "Tổng hợp kế toán", "Quản lý thu chi", "Sản phẩm khác"]
     f["san_pham"] = st.selectbox("f4", list_sp, index=list_sp.index(f["san_pham"]) if f["san_pham"] in list_sp else 0, label_visibility="collapsed")
 
