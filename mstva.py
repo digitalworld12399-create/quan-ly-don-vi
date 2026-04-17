@@ -4,19 +4,30 @@ from supabase import create_client, Client
 import re
 from datetime import datetime
 import time
+import pandas as pd
 
 # --- 1. KẾT NỐI HỆ THỐNG ---
 URL = "https://niqehefvnzwbfwafncej.supabase.co"
 KEY = "sb_publishable_3clZvjfg6EoOxZQ0QzsBOQ_m2v9KiKN"
 supabase: Client = create_client(URL, KEY)
 
+# Cấu hình API và Telegram
 X_CLIENT_ID = "YOUR_CLIENT_ID" 
 X_API_KEY = "YOUR_API_KEY"
-
 TELE_TOKEN = "8208357912:AAHm-dNSkmCl4HgxpgnSCjoH6uGdjjZvsMA"
 TELE_CHAT_ID = "7446579212" 
 
 # --- 2. HÀM HỖ TRỢ ---
+@st.cache_data
+def load_danhmuc():
+    file_name = 'danhmuc.csv'
+    try:
+        df = pd.read_csv(file_name, sep=';', engine='python', encoding='utf-8-sig')
+        col_name = df.columns[0]
+        return sorted(df[col_name].dropna().unique().tolist())
+    except:
+        return ["Huyện Đồng Văn", "Huyện Mèo Vạc"]
+
 def send_telegram(msg):
     try:
         url = f"https://api.telegram.org/bot{TELE_TOKEN}/sendMessage"
@@ -28,12 +39,15 @@ def speak_male(text):
     tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={text.replace(' ', '%20')}&tl=vi&client=tw-ob"
     st.components.v1.html(f"<script>new Audio('{tts_url}').play();</script>", height=0)
 
-# Khởi tạo trạng thái
+LIST_HUYEN = load_danhmuc()
+
+# Khởi tạo trạng thái Session State
 if 'form' not in st.session_state:
     st.session_state.form = {
         "mst": "", "ten": "", "dc": "", "rep": "", "qhns": "", "thue": "", 
         "ma_kb": "", "tk_kb": "", "kt": "", "sdt_kt": "", "chuc_vu": "", 
-        "san_pham": "Kế toán hành chính"
+        "san_pham": "", # Ô này dùng cho "Mã số máy" nhập tay
+        "huyen_cu": LIST_HUYEN[0] if LIST_HUYEN else ""
     }
 if 'show_confirm' not in st.session_state: st.session_state.show_confirm = False
 if 'search_status' not in st.session_state: st.session_state.search_status = None
@@ -49,28 +63,26 @@ def final_save(mode="NEW"):
         "mst": f["mst"], "ten_don_vi": f["ten"], "dia_chi": f["dc"], "ma_qhns": f["qhns"],
         "so_tkkb": f["tk_kb"], "ma_kbnn": f["ma_kb"], "co_quan_thue": f["thue"],
         "chu_tai_khoan": f["rep"], "chuc_vu": f["chuc_vu"], "ke_toan": f["kt"],
-        "sdt_ke_toan": f["sdt_kt"], "san_pham": f["san_pham"], "last_update": now_obj.isoformat()
+        "sdt_ke_toan": f["sdt_kt"], "san_pham": f["san_pham"], 
+        "huyen_cu": f["huyen_cu"],
+        "last_update": now_obj.isoformat()
     }
     
     try:
-        # Lưu bảng chính
         supabase.table("don_vi").upsert(payload, on_conflict="mst").execute()
         
-        # Lưu lịch sử (Bảng đã được bạn tạo thành công)
+        # Lưu lịch sử log
         log_data = {
-            "mst": f["mst"], 
-            "ten_don_vi": f["ten"], 
+            "mst": f["mst"], "ten_don_vi": f["ten"], 
             "hanh_dong": "GHI ĐÈ" if mode == "OVERWRITE" else "THÊM MỚI",
             "thoi_gian": now_obj.isoformat()
         }
         supabase.table("lich_su_cap_nhat").insert(log_data).execute()
         
-        # Cập nhật danh sách hiển thị tại Sidebar
         st.session_state.session_history.insert(0, f"🕒 {now_str} | {mode}: {f['ten']}")
         
-        # Telegram
         prefix = "⚠️ *GHI ĐÈ DỮ LIỆU*" if mode == "OVERWRITE" else "🆕 *THÊM MỚI ĐƠN VỊ*"
-        msg = f"{prefix}\n🏢 {f['ten']}\n🆔 MST: {f['mst']}\n👨‍💼 {f['kt']} ({f['sdt_kt']})"
+        msg = f"{prefix}\n🏢 {f['ten']}\n📍 {f['huyen_cu']}\n🆔 MST: {f['mst']}\n👨‍💼 {f['kt']} ({f['sdt_kt']})"
         send_telegram(msg)
         
         st.session_state.show_confirm = False
@@ -91,10 +103,19 @@ with st.sidebar:
         <h3 style="margin-top:0;">🛡️ HN11 SYSTEM</h3>
         <p style="margin-bottom:5px;">👤 <b>Phát triển:</b> Nguyễn Văn Ánh</p>
         <p style="margin-bottom:5px;">📞 <b>ĐT:</b> 0969.338.332</p>
-        <p style="margin-bottom:0;">🔖 <b>Phiên bản:</b> 2.0.1</p>
+        <p style="margin-bottom:0;">🔖 <b>Phiên bản:</b> 2.0.4</p>
     </div>
     """, unsafe_allow_html=True)
     
+    st.divider()
+    
+    # --- LIÊN KẾT TRANG QUẢN TRỊ (MỚI) ---
+    st.link_button("🚀 ĐĂNG NHẬP QUẢN TRỊ", "https://quan-ly-don-vi-mzbftixs3wct4ammhpdmvq.streamlit.app/", use_container_width=True, type="primary")
+    
+    st.divider()
+    # Nút kiểm tra cập nhật (Theo yêu cầu trước đó)
+    st.link_button("🔄 KIỂM TRA CẬP NHẬT", "https://your-update-link.com", use_container_width=True)
+
     st.divider()
     st.subheader("📜 Nhật ký phiên làm việc")
     if st.session_state.session_history:
@@ -102,15 +123,13 @@ with st.sidebar:
             st.caption(item)
     else:
         st.write("Chưa có dữ liệu mới.")
-    
-    st.divider()
-    st.link_button("🚀 ĐĂNG NHẬP QUẢN TRỊ", "https://quan-ly-don-vi-mzbftixs3wct4ammhpdmvq.streamlit.app/", use_container_width=True)
 
+# Xử lý xác nhận ghi đè
 if st.session_state.show_confirm:
     st.warning(f"### ⚠️ XÁC NHẬN GHI ĐÈ\nMST {st.session_state.form['mst']} đã tồn tại. Bạn muốn cập nhật?")
     c1, c2 = st.columns(2)
-    if c1.button("✅ ĐỒNG Ý", type="primary"): final_save(mode="OVERWRITE")
-    if c2.button("❌ HỦY"): st.session_state.show_confirm = False; st.rerun()
+    if c1.button("✅ ĐỒNG Ý", type="primary", use_container_width=True): final_save(mode="OVERWRITE")
+    if c2.button("❌ HỦY", use_container_width=True): st.session_state.show_confirm = False; st.rerun()
     st.stop()
 
 st.markdown('<h1 style="text-align:center; color:#1E90FF;">🏦 HỆ THỐNG CẬP NHẬT ĐƠN VỊ HN11</h1>', unsafe_allow_html=True)
@@ -120,16 +139,10 @@ c_search, c_btn = st.columns([ 1.8, 1.2 ])
 with c_search:
     txt_mst = st.text_input("Search", placeholder="Nhập mã số thuế để tra cứu...", label_visibility="collapsed")
 
-if st.session_state.search_status == "not_found":
-    st.error("❌ Không tìm thấy thông tin. Vui lòng kiểm tra lại hoặc nhập tay.")
-elif st.session_state.search_status == "found":
-    st.success("✅ Đã tìm thấy dữ liệu đơn vị.")
-
 with c_btn:
     if st.button("🔍 TRA CỨU", type="primary", use_container_width=True):
         v_mst = re.sub(r'[^0-9]', '', txt_mst)
         if v_mst:
-            st.session_state.form.update({"ten": "", "rep": "", "qhns": "", "tk_kb": ""})
             res = supabase.table("don_vi").select("*").eq("mst", v_mst).execute()
             if res.data:
                 d = res.data[0]
@@ -137,7 +150,8 @@ with c_btn:
                     "mst": v_mst, "ten": d.get("ten_don_vi"), "dc": d.get("dia_chi"),
                     "qhns": d.get("ma_qhns"), "tk_kb": d.get("so_tkkb"), "ma_kb": d.get("ma_kbnn"),
                     "thue": d.get("co_quan_thue"), "rep": d.get("chu_tai_khoan"), "chuc_vu": d.get("chuc_vu"),
-                    "kt": d.get("ke_toan"), "sdt_kt": d.get("sdt_ke_toan"), "san_pham": d.get("san_pham")
+                    "kt": d.get("ke_toan"), "sdt_kt": d.get("sdt_ke_toan"), "san_pham": d.get("san_pham"),
+                    "huyen_cu": d.get("huyen_cu", LIST_HUYEN[0] if LIST_HUYEN else "")
                 })
                 st.session_state.search_status = "found"
             else:
@@ -152,9 +166,14 @@ with c_btn:
             if st.session_state.search_status == "not_found": speak_male("Không tìm thấy thông tin mã số thuế, vui lòng nhập tay")
             st.rerun()
 
+if st.session_state.search_status == "not_found":
+    st.error("❌ Không tìm thấy thông tin. Vui lòng kiểm tra lại hoặc nhập tay.")
+elif st.session_state.search_status == "found":
+    st.success("✅ Đã tìm thấy dữ liệu đơn vị.")
+
 st.divider()
 
-# --- 6. FORM NHẬP LIỆU ---
+# --- 6. FORM NHẬP LIỆU (3 CỘT) ---
 f = st.session_state.form
 col1, col2, col3 = st.columns(3)
 
@@ -165,9 +184,10 @@ with col1:
     f["mst"] = st.text_input("f2", value=f["mst"], label_visibility="collapsed")
     st.markdown('<p class="field-label">📍 Địa chỉ <span class="red-star">*</span></p>', unsafe_allow_html=True)
     f["dc"] = st.text_input("f3", value=f["dc"], label_visibility="collapsed")
+    
     st.markdown('<p class="field-label">💻 Huyện cũ</p>', unsafe_allow_html=True)
-    list_sp = ["Kế toán hành chính", "QLTS", "Tổng hợp kế toán", "Quản lý thu chi", "Sản phẩm khác"]
-    f["san_pham"] = st.selectbox("f4", list_sp, index=list_sp.index(f["san_pham"]) if f["san_pham"] in list_sp else 0, label_visibility="collapsed")
+    idx_huyen = LIST_HUYEN.index(f["huyen_cu"]) if f["huyen_cu"] in LIST_HUYEN else 0
+    f["huyen_cu"] = st.selectbox("f_huyen", LIST_HUYEN, index=idx_huyen, label_visibility="collapsed")
 
 with col2:
     st.markdown('<p class="field-label">🏦 Mã QHNS <span class="red-star">*</span></p>', unsafe_allow_html=True)
@@ -181,8 +201,9 @@ with col2:
     f["tk_kb"] = st.text_input("f6", value=f["tk_kb"], label_visibility="collapsed")
     st.markdown('<p class="field-label">🏛️ Mã Kho bạc <span class="red-star">*</span></p>', unsafe_allow_html=True)
     f["ma_kb"] = st.text_input("f7", value=f["ma_kb"], label_visibility="collapsed")
+    
     st.markdown('<p class="field-label">🧾 Mã số máy (DTSoft điền)</p>', unsafe_allow_html=True)
-    f["thue"] = st.text_input("f8", value=f["thue"], label_visibility="collapsed")
+    f["san_pham"] = st.text_input("f4", value=f["san_pham"], label_visibility="collapsed")
 
 with col3:
     st.markdown('<p class="field-label">👤 Chủ tài khoản <span class="red-star">*</span></p>', unsafe_allow_html=True)
