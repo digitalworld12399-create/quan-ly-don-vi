@@ -1,0 +1,775 @@
+﻿TÊN ĐỊA DANH;Mã địa danh
+Thành phố Hà Nội;01
+Quận Ba Đình;01.001
+Quận Hoàn Kiếm;01.002
+Quận Tây Hồ;01.003
+Quận Long Biên;01.004
+Quận Cầu Giấy;01.005
+Quận Đống Đa;01.006
+Quận Hai Bà Trưng;01.007
+Quận Hoàng Mai;01.008
+Quận Thanh Xuân;01.009
+Huyện Sóc Sơn;01.016
+Huyện Đông Anh;01.017
+Huyện Gia Lâm;01.018
+Quận Nam Từ Liêm;01.019
+Huyện Thanh Trì;01.020
+Quận Bắc Từ Liêm;01.021
+Huyện Mê Linh;01.250
+Quận Hà Đông;01.268
+Thị xã Sơn Tây;01.269
+Huyện Ba Vì;01.271
+Huyện Phúc Thọ;01.272
+Huyện Đan Phượng;01.273
+Huyện Hoài Đức;01.274
+Huyện Quốc Oai;01.275
+Huyện Thạch Thất;01.276
+Huyện Chương Mỹ;01.277
+Huyện Thanh Oai;01.278
+Huyện Thường Tín;01.279
+Huyện Phú Xuyên;01.280
+Huyện Ứng Hòa;01.281
+Huyện Mỹ Đức;01.282
+Tỉnh Hà Giang;02
+Thành phố Hà Giang;02.024
+Huyện Đồng Văn;02.026
+Huyện Mèo Vạc;02.027
+Huyện Yên Minh;02.028
+Huyện Quản Bạ;02.029
+Huyện Vị Xuyên;02.030
+Huyện Bắc Mê;02.031
+Huyện Hoàng Su Phì;02.032
+Huyện Xín Mần;02.033
+Huyện Bắc Quang;02.034
+Huyện Quang Bình;02.035
+Tỉnh Cao Bằng;04
+Thành phố Cao Bằng;04.040
+Huyện Bảo Lâm;04.042
+Huyện Bảo Lạc;04.043
+Huyện Thông Nông;04.044
+Huyện Hà Quảng;04.045
+Huyện Trà Lĩnh;04.046
+Huyện Trùng Khánh;04.047
+Huyện Hạ Lang;04.048
+Huyện Quảng Uyên;04.049
+Huyện Phục Hoà;04.050
+Huyện Hoà An;04.051
+Huyện Nguyên Bình;04.052
+Huyện Thạch An;04.053
+Tỉnh Bắc Kạn;06
+Thành Phố Bắc Kạn;06.0580
+Huyện Pác Nặm;06.060
+Huyện Ba Bể;06.061
+Huyện Ngân Sơn;06.062
+Huyện Bạch Thông;06.063
+Huyện Chợ Đồn;06.064
+Huyện Chợ Mới;06.065
+Huyện Na Rì;06.066
+Tỉnh Tuyên Quang;08
+Thành phố Tuyên Quang;08.070
+Huyện Lâm Bình;08.071
+Huyện Nà Hang;08.072
+Huyện Chiêm Hóa;08.073
+Huyện Hàm Yên;08.074
+Huyện Yên Sơn;08.075
+Huyện Sơn Dương;08.076
+Tỉnh Lào Cai;10
+Thành phố Lào Cai;10.080
+Huyện Bát Xát;10.082
+Huyện Mường Khương;10.083
+Huyện Si Ma Cai;10.084
+Huyện Bắc Hà;10.085
+Huyện Bảo Thắng;10.086
+Huyện Bảo Yên;10.087
+Huyện Sa Pa;10.088
+Huyện Văn Bàn;10.089
+Tỉnh Điện Biên;11
+Thành phố Điện Biên Phủ;11.094
+Thị Xã Mường Lay;11.095
+Huyện Mường Nhé;11.096
+Huyện Mường Chà;11.097
+Huyện Tủa Chùa;11.098
+Huyện Tuần Giáo;11.099
+Huyện Điện Biên;11.100
+Huyện Điện Biên Đông;11.101
+Huyện Mường Ảng;11.102
+Huyện Nậm Pồ;11.103
+Tỉnh Lai Châu;12
+Thành phố Lai Châu;12.105
+Huyện Tam Đường;12.106
+Huyện Mường Tè;12.107
+Huyện Sìn Hồ;12.108
+Huyện Phong Thổ;12.109
+Huyện Than Uyên;12.110
+Huyện Tân Uyên;12.111
+Huyện Nậm Nhùn;12.112
+Tỉnh Sơn La;14
+Thành phố Sơn La;14.116
+Huyện Quỳnh Nhai;14.118
+Huyện Thuận Châu;14.119
+Huyện Mường La;14.120
+Huyện Bắc Yên;14.121
+Huyện Phù Yên;14.122
+Huyện Mộc Châu;14.123
+Huyện Yên Châu;14.124
+Huyện Mai Sơn;14.125
+Huyện Sông Mã;14.126
+Huyện Sốp Cộp;14.127
+Huyện Vân Hồ;14.128
+Tỉnh Yên Bái;15
+Thành phố Yên Bái;15.132
+Thị xã Nghĩa Lộ;15.133
+Huyện Lục Yên;15.135
+Huyện Văn Yên;15.136
+Huyện Mù Căng Chải;15.137
+Huyện Trấn Yên;15.138
+Huyện Trạm Tấu;15.139
+Huyện Văn Chấn;15.140
+Huyện Yên Bình;15.141
+Tỉnh Hoà Bình;17
+Thành phố Hòa Bình;17.148
+Huyện Đà Bắc;17.150
+Huyện Kỳ Sơn;17.151
+Huyện Lương Sơn;17.152
+Huyện Kim Bôi;17.153
+Huyện Cao Phong;17.154
+Huyện Tân Lạc;17.155
+Huyện Mai Châu;17.156
+Huyện Lạc Sơn;17.157
+Huyện Yên Thủy;17.158
+Huyện Lạc Thủy;17.159
+Tỉnh Thái Nguyên;19
+Thành phố Thái Nguyên;19.164
+Thị xã Sông Công;19.165
+Huyện Định Hóa;19.167
+Huyện Phú Lương;19.168
+Huyện Đồng Hỷ;19.169
+Huyện Võ Nhai;19.170
+Huyện Đại Từ;19.171
+Huyện Phổ Yên;19.172
+Huyện Phú Bình;19.173
+Tỉnh Lạng Sơn;20
+Thành phố Lạng Sơn;20.178
+Huyện Tràng Định;20.180
+Huyện Bình Gia;20.181
+Huyện Văn Lãng;20.182
+Huyện Cao Lộc;20.183
+Huyện Văn Quan;20.184
+Huyện Bắc Sơn;20.185
+Huyện Hữu Lũng;20.186
+Huyện Chi Lăng;20.187
+Huyện Lộc Bình;20.188
+Huyện Đình Lập;20.189
+Tỉnh Quảng Ninh;22
+Thành phố Hạ Long;22.193
+Thành phố Móng Cái;22.194
+Thành phố Cẩm Phả;22.195
+Thành phố Uông Bí;22.196
+Huyện Bình Liêu;22.198
+Huyện Tiên Yên;22.199
+Huyện Đầm Hà;22.200
+Huyện Hải Hà;22.201
+Huyện Ba Chẽ;22.202
+Huyện Vân Đồn;22.203
+Huyện Hoành Bồ;22.204
+Thị xã Đông Triều;22.205
+Thị xã Quảng Yên;22.206
+Huyện Cô Tô;22.207
+Tỉnh Bắc Giang;24
+Thành phố Bắc Giang;24.213
+Huyện Yên Thế;24.215
+Huyện Tân Yên;24.216
+Huyện Lạng Giang;24.217
+Huyện Lục Nam;24.218
+Huyện Lục Ngạn;24.219
+Huyện Sơn Động;24.220
+Huyện Yên Dũng;24.221
+Huyện Việt Yên;24.222
+Huyện Hiệp Hòa;24.223
+Tỉnh Phú Thọ;25
+Thành phố Việt Trì;25.227
+Thị xã Phú Thọ;25.228
+Huyện Đoan Hùng;25.230
+Huyện Hạ Hoà;25.231
+Huyện Thanh Ba;25.232
+Huyện Phù Ninh;25.233
+Huyện Yên Lập;25.234
+Huyện Cẩm Khê;25.235
+Huyện Tam Nông;25.236
+Huyện Lâm Thao;25.237
+Huyện Thanh Sơn;25.238
+Huyện Thanh Thuỷ;25.239
+Huyện Tân Sơn;25.240
+Tỉnh Vĩnh Phúc;26
+Thành phố Vĩnh Yên;26.243
+Thị xã Phúc Yên;26.244
+Huyện Lập Thạch;26.246
+Huyện Tam Dương;26.247
+Huyện Tam Đảo;26.248
+Huyện Bình Xuyên;26.249
+Huyện Yên Lạc;26.251
+Huyện Vĩnh Tường;26.252
+Huyện Sông Lô;26.253
+Tỉnh Bắc Ninh;27
+Thành phố Bắc Ninh;27.256
+Huyện Yên Phong;27.258
+Huyện Quế Võ;27.259
+Huyện Tiên Du;27.260
+Thị xã Từ Sơn;27.261
+Huyện Thuận Thành;27.262
+Huyện Gia Bình;27.263
+Huyện Lương Tài;27.264
+Tỉnh Hải Dương;30
+Thành phố Hải Dương;30.288
+Thị xã Chí Linh;30.290
+Huyện Nam Sách;30.291
+Huyện Kinh Môn;30.292
+Huyện Kim Thành;30.293
+Huyện Thanh Hà;30.294
+Huyện Cẩm Giàng;30.295
+Huyện Bình Giang;30.296
+Huyện Gia Lộc;30.297
+Huyện Tứ Kỳ;30.298
+Huyện Ninh Giang;30.299
+Huyện Thanh Miện;30.300
+Thành phố Hải Phòng;31
+Quận Hồng Bàng;31.303
+Quận Ngô Quyền;31.304
+Quận Lê Chân;31.305
+Quận Hải An;31.306
+Quận Kiến An;31.307
+Quận Đồ Sơn;31.308
+Quận Dương Kinh;31.309
+Huyện Thuỷ Nguyên;31.311
+Huyện An Dương;31.312
+Huyện An Lão;31.313
+Huyện Kiến Thuỵ;31.314
+Huyện Tiên Lãng;31.315
+Huyện Vĩnh Bảo;31.316
+Huyện Cát Hải;31.317
+Huyện Bạch Long Vĩ;31.318
+Tỉnh Hưng Yên;33
+Thành phố Hưng Yên;33.323
+Huyện Văn Lâm;33.325
+Huyện Văn Giang;33.326
+Huyện Yên Mỹ;33.327
+Huyện Mỹ Hào;33.328
+Huyện Ân Thi;33.329
+Huyện Khoái Châu;33.330
+Huyện Kim Động;33.331
+Huyện Tiên Lữ;33.332
+Huyện Phù Cừ;33.333
+Tỉnh Thái Bình;34
+Thành phố Thái Bình;34.336
+Huyện Quỳnh Phụ;34.338
+Huyện Hưng Hà;34.339
+Huyện Đông Hưng;34.340
+Huyện Thái Thụy;34.341
+Huyện Tiền Hải;34.342
+Huyện Kiến Xương;34.343
+Huyện Vũ Thư;34.344
+Tỉnh Hà Nam;35
+Thành phố Phủ Lý;35.347
+Huyện Duy Tiên;35.349
+Huyện Kim Bảng;35.350
+Huyện Thanh Liêm;35.351
+Huyện Bình Lục;35.352
+Huyện Lý Nhân;35.353
+Tỉnh Nam Định;36
+Thành phố Nam Định;36.356
+Huyện Mỹ Lộc;36.358
+Huyện Vụ Bản;36.359
+Huyện Ý Yên;36.360
+Huyện Nghĩa Hưng;36.361
+Huyện Nam Trực;36.362
+Huyện Trực Ninh;36.363
+Huyện Xuân Trường;36.364
+Huyện Giao Thủy;36.365
+Huyện Hải Hậu;36.366
+Tỉnh Ninh Bình;37
+Thành phố Ninh Bình;37.369
+Thị xã Tam Điệp;37.370
+Huyện Nho Quan;37.372
+Huyện Gia Viễn;37.373
+Huyện Hoa Lư;37.374
+Huyện Yên Khánh;37.375
+Huyện Kim Sơn;37.376
+Huyện Yên Mô;37.377
+Tỉnh Thanh Hóa;38
+Thành phố Thanh Hóa;38.380
+Thị xã Bỉm Sơn;38.381
+Thị xã Sầm Sơn;38.382
+Huyện Mường Lát;38.384
+Huyện Quan Hóa;38.385
+Huyện Bá Thước;38.386
+Huyện Quan Sơn;38.387
+Huyện Lang Chánh;38.388
+Huyện Ngọc Lặc;38.389
+Huyện Cẩm Thủy;38.390
+Huyện Thạch Thành;38.391
+Huyện Hà Trung;38.392
+Huyện Vĩnh Lộc;38.393
+Huyện Yên Định;38.394
+Huyện Thọ Xuân;38.395
+Huyện Thường Xuân;38.396
+Huyện Triệu Sơn;38.397
+Huyện Thiệu Hóa;38.398
+Huyện Hoằng Hóa;38.399
+Huyện Hậu Lộc;38.400
+Huyện Nga Sơn;38.401
+Huyện Như Xuân;38.402
+Huyện Như Thanh;38.403
+Huyện Nông Cống;38.404
+Huyện Đông Sơn;38.405
+Huyện Quảng Xương;38.406
+Huyện Tĩnh Gia;38.407
+Tỉnh Nghệ An;40
+Thành phố Vinh;40.412
+Thị xã Cửa Lò;40.413
+Thị xã Thái Hoà;40.414
+Huyện Quế Phong;40.415
+Huyện Quỳ Châu;40.416
+Huyện Kỳ Sơn;40.417
+Huyện Tương Dương;40.418
+Huyện Nghĩa Đàn;40.419
+Huyện Quỳ Hợp;40.420
+Huyện Quỳnh Lưu;40.421
+Huyện Con Cuông;40.422
+Huyện Tân Kỳ;40.423
+Huyện Anh Sơn;40.424
+Huyện Diễn Châu;40.425
+Huyện Yên Thành;40.426
+Huyện Đô Lương;40.427
+Huyện Thanh Chương;40.428
+Huyện Nghi Lộc;40.429
+Huyện Nam Đàn;40.430
+Huyện Hưng Nguyên;40.431
+Thị xã Hoàng Mai;40.432
+Tỉnh Hà Tĩnh;42
+Thành phố Hà Tĩnh;42.436
+Thị xã Hồng Lĩnh;42.437
+Huyện Hương Sơn;42.439
+Huyện Đức Thọ;42.440
+Huyện Vũ Quang;42.441
+Huyện Nghi Xuân;42.442
+Huyện Can Lộc;42.443
+Huyện Hương Khê;42.444
+Huyện Thạch Hà;42.445
+Huyện Cẩm Xuyên;42.446
+Thị xã Kỳ Anh;42.447
+Huyện Lộc Hà;42.448
+Huyện Kỳ Anh;42.449
+Tỉnh Quảng Bình;44
+Thành Phố Đồng Hới;44.450
+Huyện Minh Hóa;44.452
+Huyện Tuyên Hóa;44.453
+Huyện Quảng Trạch;44.454
+Huyện Bố Trạch;44.455
+Huyện Quảng Ninh;44.456
+Huyện Lệ Thủy;44.457
+Thị xã Ba Đồn;44.458
+Tỉnh Quảng Trị;45
+Thành phố Đông Hà;45.461
+Thị xã Quảng Trị;45.462
+Huyện Vĩnh Linh;45.464
+Huyện Hướng Hóa;45.465
+Huyện Gio Linh;45.466
+Huyện Đa Krông;45.467
+Huyện Cam Lộ;45.468
+Huyện Triệu Phong;45.469
+Huyện Hải Lăng;45.470
+Huyện Cồn Cỏ;45.471
+Tỉnh Thừa Thiên Huế;46
+Thành phố Huế;46.474
+Huyện Phong Điền;46.476
+Huyện Quảng Điền;46.477
+Huyện Phú Vang;46.478
+Thị xã Hương Thủy;46.479
+Thị xã Hương Trà;46.480
+Huyện A Lưới;46.481
+Huyện Phú Lộc;46.482
+Huyện Nam Đông;46.483
+Quận Liên Chiểu;48.490
+Quận Thanh Khê;48.491
+Quận Hải Châu;48.492
+Quận Sơn Trà;48.493
+Quận Ngũ Hành Sơn;48.494
+Quận Cẩm Lệ;48.495
+Huyện Hòa Vang;48.497
+Huyện Hoàng Sa;48.498
+Tỉnh Quảng Nam;49
+Thành phố Tam Kỳ;49.502
+Thành phố Hội An;49.503
+Huyện Tây Giang;49.504
+Huyện Đông Giang;49.505
+Huyện Đại Lộc;49.506
+Thị xã Điện Bàn;49.507
+Huyện Duy Xuyên;49.508
+Huyện Quế Sơn;49.509
+Huyện Nam Giang;49.510
+Huyện Phước Sơn;49.511
+Huyện Hiệp Đức;49.512
+Huyện Thăng Bình;49.513
+Huyện Tiên Phước;49.514
+Huyện Bắc Trà My;49.515
+Huyện Nam Trà My;49.516
+Huyện Núi Thành;49.517
+Huyện Phú Ninh;49.518
+Huyện Nông Sơn;49.519
+Tỉnh Quảng Ngãi;51
+Thành phố Quảng Ngãi;51.522
+Huyện Bình Sơn;51.524
+Huyện Trà Bồng;51.525
+Huyện Tây Trà;51.526
+Huyện Sơn Tịnh;51.527
+Huyện Tư Nghĩa;51.528
+Huyện Sơn Hà;51.529
+Huyện Sơn Tây;51.530
+Huyện Minh Long;51.531
+Huyện Nghĩa Hành;51.532
+Huyện Mộ Đức;51.533
+Huyện Đức Phổ;51.534
+Huyện Ba Tơ;51.535
+Huyện Lý Sơn;51.536
+Tỉnh Bình Định;52
+Thành phố Qui Nhơn;52.540
+Huyện An Lão;52.542
+Huyện Hoài Nhơn;52.543
+Huyện Hoài Ân;52.544
+Huyện Phù Mỹ;52.545
+Huyện Vĩnh Thạnh;52.546
+Huyện Tây Sơn;52.547
+Huyện Phù Cát;52.548
+Thị xã An Nhơn;52.549
+Huyện Tuy Phước;52.550
+Huyện Vân Canh;52.551
+Tỉnh Phú Yên;54
+Thành phố Tuy Hoà;54.555
+Thị xã Sông Cầu;54.557
+Huyện Đồng Xuân;54.558
+Huyện Tuy An;54.559
+Huyện Sơn Hòa;54.560
+Huyện Sông Hinh;54.561
+Huyện Tây Hoà;54.562
+Huyện Phú Hoà;54.563
+Huyện Đông Hòa;54.564
+Tỉnh Khánh Hòa;56
+Thành phố Nha Trang;56.568
+Thành phố Cam Ranh;56.569
+Huyện Cam Lâm;56.570
+Huyện Vạn Ninh;56.571
+Thị xã Ninh Hòa;56.572
+Huyện Khánh Vĩnh;56.573
+Huyện Diên Khánh;56.574
+Huyện Khánh Sơn;56.575
+Huyện Trường Sa;56.576
+Tỉnh Ninh Thuận;58
+Thành phố Phan Rang-Tháp Chàm;58.582
+Huyện Bác Ái;58.584
+Huyện Ninh Sơn;58.585
+Huyện Ninh Hải;58.586
+Huyện Ninh Phước;58.587
+Huyện Thuận Bắc;58.588
+Huyện Thuận Nam;58.589
+Tỉnh Bình Thuận;60
+Thành phố Phan Thiết;60.593
+Thị xã La Gi;60.594
+Huyện Tuy Phong;60.595
+Huyện Bắc Bình;60.596
+Huyện Hàm Thuận Bắc;60.597
+Huyện Hàm Thuận Nam;60.598
+Huyện Tánh Linh;60.599
+Huyện Đức Linh;60.600
+Huyện Hàm Tân;60.601
+Huyện Phú Quí;60.602
+Tỉnh Kon Tum;62
+Thành phố Kon Tum;62.608
+Huyện Đắk Glei;62.610
+Huyện Ngọc Hồi;62.611
+Huyện Đắk Tô;62.612
+Huyện Kon Plông;62.613
+Huyện Kon Rẫy;62.614
+Huyện Đắk Hà;62.615
+Huyện Sa Thầy;62.616
+Huyện Tu Mơ Rông;62.617
+Huyện Ia H' Drai;62.618
+Tỉnh Gia Lai;64
+Thành phố Pleiku;64.622
+Thị xã An Khê;64.623
+Thị xã Ayun Pa;64.624
+Huyện KBang;64.625
+Huyện Đăk Đoa;64.626
+Huyện Chư Păh;64.627
+Huyện Ia Grai;64.628
+Huyện Mang Yang;64.629
+Huyện Kông Chro;64.630
+Huyện Đức Cơ;64.631
+Huyện Chư Prông;64.632
+Huyện Chư Sê;64.633
+Huyện Đăk Pơ;64.634
+Huyện Ia Pa;64.635
+Huyện Krông Pa;64.637
+Huyện Phú Thiện;64.638
+Huyện Chư Pưh;64.639
+Tỉnh Đắk Lắk;66
+Thành phố Buôn Ma Thuột;66.643
+Thị Xã Buôn Hồ;66.644
+Huyện Ea H'leo;66.645
+Huyện Ea Súp;66.646
+Huyện Buôn Đôn;66.647
+Huyện Cư M'gar;66.648
+Huyện Krông Búk;66.649
+Huyện Krông Năng;66.650
+Huyện Ea Kar;66.651
+Huyện M'Đrắk;66.652
+Huyện Krông Bông;66.653
+Huyện Krông Pắc;66.654
+Huyện Krông A Na;66.655
+Huyện Lắk;66.656
+Huyện Cư Kuin;66.657
+Tỉnh Đắk Nông;67
+Thị xã Gia Nghĩa;67.660
+Huyện Đăk Glong;67.661
+Huyện Cư Jút;67.662
+Huyện Đắk Mil;67.663
+Huyện Krông Nô;67.664
+Huyện Đắk Song;67.665
+Huyện Đắk R'Lấp;67.666
+Huyện Tuy Đức;67.667
+Tỉnh Lâm Đồng;68
+Thành phố Đà Lạt;68.672
+Thành phố Bảo Lộc;68.673
+Huyện Đam Rông;68.674
+Huyện Lạc Dương;68.675
+Huyện Lâm Hà;68.676
+Huyện Đơn Dương;68.677
+Huyện Đức Trọng;68.678
+Huyện Di Linh;68.679
+Huyện Bảo Lâm;68.680
+Huyện Đạ Huoai;68.681
+Huyện Đạ Tẻh;68.682
+Huyện Cát Tiên;68.683
+Tỉnh Bình Phước;70
+Thị xã Phước Long;70.688
+Thị xã Đồng Xoài;70.689
+Thị xã Bình Long;70.690
+Huyện Bù Gia Mập;70.691
+Huyện Lộc Ninh;70.692
+Huyện Bù Đốp;70.693
+Huyện Hớn Quản;70.694
+Huyện Đồng Phù;70.695
+Huyện Bù Đăng;70.696
+Huyện Chơn Thành;70.697
+Huyện Phú Riềng;70.698
+Tỉnh Tây Ninh;72
+Thành phố Tây Ninh;72.703
+Huyện Tân Biên;72.705
+Huyện Tân Châu;72.706
+Huyện Dương Minh Châu;72.707
+Huyện Châu Thành;72.708
+Huyện Hòa Thành;72.709
+Huyện Gò Dầu;72.710
+Huyện Bến Cầu;72.711
+Huyện Trảng Bàng;72.712
+Tỉnh Bình Dương;74
+Thành phố Thủ Dầu Một;74.718
+Huyện Bàu Bàng;74.719
+Huyện Dầu Tiếng;74.720
+Thị xã Bến Cát;74.721
+Huyện Phú Giáo;74.722
+Thị xã Tân Uyên;74.723
+Thị xã Dĩ An;74.724
+Thị xã Thuận An;74.725
+Huyện Bắc Tân Uyên;74.726
+Tỉnh Đồng Nai;75
+Thành phố Biên Hòa;75.731
+Thị xã Long Khánh;75.732
+Huyện Tân Phú;75.734
+Huyện Vĩnh Cửu;75.735
+Huyện Định Quán;75.736
+Huyện Trảng Bom;75.737
+Huyện Thống Nhất;75.738
+Huyện Cẩm Mỹ;75.739
+Huyện Long Thành;75.740
+Huyện Xuân Lộc;75.741
+Huyện Nhơn Trạch;75.742
+Tỉnh Bà Rịa - Vũng Tàu;77
+Thành phố Vũng Tàu;77.747
+Thành phố Bà Rịa;77.748
+Huyện Châu Đức;77.750
+Huyện Xuyên Mộc;77.751
+Huyện Long Điền;77.752
+Huyện Đất Đỏ;77.753
+Huyện Tân Thành;77.754
+Huyện Côn Đảo;77.755
+Thành phố Hồ Chí Minh;79
+Quận 1;79.760
+Quận 12;79.761
+Quận Thủ Đức;79.762
+Quận 9;79.763
+Quận Gò Vấp;79.764
+Quận Bình Thạnh;79.765
+Quận Tân Bình;79.766
+Quận Tân Phú;79.767
+Quận Phú Nhuận;79.768
+Quận 2;79.769
+Quận 3;79.770
+Quận 10;79.771
+Quận 11;79.772
+Quận 4;79.773
+Quận 5;79.774
+Quận 6;79.775
+Quận 8;79.776
+Quận Bình Tân;79.777
+Quận 7;79.778
+Huyện Củ Chi;79.783
+Huyện Hóc Môn;79.784
+Huyện Bình Chánh;79.785
+Huyện Nhà Bè;79.786
+Huyện Cần Giờ;79.787
+Tỉnh Long An;80
+Thành phố Tân An;80.794
+Thị xã Kiến Tường;80.795
+Huyện Tân Hưng;80.796
+Huyện Vĩnh Hưng;80.797
+Huyện Mộc Hóa;80.798
+Huyện Tân Thạnh;80.799
+Huyện Thạnh Hóa;80.800
+Huyện Đức Huệ;80.801
+Huyện Đức Hòa;80.802
+Huyện Bến Lức;80.803
+Huyện Thủ Thừa;80.804
+Huyện Tân Trụ;80.805
+Huyện Cần Đước;80.806
+Huyện Cần Giuộc;80.807
+Huyện Châu Thành;80.808
+Tỉnh Tiền Giang;82
+Thành phố Mỹ Tho;82.815
+Thị xã Gò Công;82.816
+Thị xã Cai Lậy;82.817
+Huyện Tân Phước;82.818
+Huyện Cái Bè;82.819
+Huyện Cai Lậy;82.820
+Huyện Châu Thành;82.821
+Huyện Chợ Gạo;82.822
+Huyện Gò Công Tây;82.823
+Huyện Gò Công Đông;82.824
+Huyện Tân Phú Đông;82.825
+Tỉnh Bến Tre;83
+Thành phố Bến Tre;83.829
+Huyện Châu Thành;83.831
+Huyện Chợ Lách;83.832
+Huyện Mỏ Cày Nam;83.833
+Huyện Giồng Trôm;83.834
+Huyện Bình Đại;83.835
+Huyện Ba Tri;83.836
+Huyện Thạnh Phú;83.837
+Huyện Mỏ Cày Bắc;83.838
+Tỉnh Trà Vinh;84
+Thành phố Trà Vinh;84.842
+Huyện Càng Long;84.844
+Huyện Cầu Kè;84.845
+Huyện Tiểu Cần;84.846
+Huyện Châu Thành;84.847
+Huyện Cầu Ngang;84.848
+Huyện Trà Cú;84.849
+Huyện Duyên Hải;84.850
+Tỉnh Vĩnh Long;86
+Thành phố Vĩnh Long;86.855
+Huyện Long Hồ;86.857
+Huyện Mang Thít;86.858
+Huyện Vũng Liêm;86.859
+Huyện Tam Bình;86.860
+Thị xã Bình Minh;86.861
+Huyện Trà Ôn;86.862
+Huyện Bình Tân;86.863
+Tỉnh Đồng Tháp;87
+Thành phố Cao Lãnh;87.866
+Thành phố Sa Đéc;87.867
+Thị xã Hồng Ngự;87.868
+Huyện Tân Hồng;87.869
+Huyện Hồng Ngự;87.870
+Huyện Tam Nông;87.871
+Huyện Tháp Mười;87.872
+Huyện Cao Lãnh;87.873
+Huyện Thanh Bình;87.874
+Huyện Lấp Vò;87.875
+Huyện Lai Vung;87.876
+Huyện Châu Thành;87.877
+Tỉnh An Giang;89
+Thành phố Long Xuyên;89.883
+Thành phố Châu Đốc;89.884
+Huyện An Phú;89.886
+Thị xã Tân Châu;89.887
+Huyện Phú Tân;89.888
+Huyện Châu Phú;89.889
+Huyện Tịnh Biên;89.890
+Huyện Tri Tôn;89.891
+Huyện Châu Thành;89.892
+Huyện Chợ Mới;89.893
+Huyện Thoại Sơn;89.894
+Tỉnh Kiên Giang;91
+Thành phố Rạch Giá;91.899
+Thị xã Hà Tiên;91.900
+Huyện Kiên Lương;91.902
+Huyện Hòn Đất;91.903
+Huyện Tân Hiệp;91.904
+Huyện Châu Thành;91.905
+Huyện Giồng Riềng;91.906
+Huyện Gò Quao;91.907
+Huyện An Biên;91.908
+Huyện An Minh;91.909
+Huyện Vĩnh Thuận;91.910
+Huyện Phú Quốc;91.911
+Huyện Kiên Hải;91.912
+Huyện U Minh Thượng;91.913
+Huyện Giang Thành;91.914
+Thành phố Cần Thơ;92
+Quận Ninh Kiều;92.916
+Quận Ô Môn;92.917
+Quận Bình Thuỷ;92.918
+Quận Cái Răng;92.919
+Quận Thốt Nốt;92.923
+Huyện Vĩnh Thạnh;92.924
+Huyện Cờ Đỏ;92.925
+Huyện Phong Điền;92.926
+Huyện Thới Lai;92.927
+Tỉnh Hậu Giang;93
+Thành phố Vị Thanh;93.930
+Thị xã Ngã Bảy;93.931
+Huyện Châu Thành A;93.932
+Huyện Châu Thành;93.933
+Huyện Phụng Hiệp;93.934
+Huyện Vị Thuỷ;93.935
+Huyện Long Mỹ;93.936
+Thị xã Long Mỹ;93.937
+Tỉnh Sóc Trăng;94
+Thành phố Sóc Trăng;94.941
+Huyện Châu Thành;94.942
+Huyện Kế Sách;94.943
+Huyện Mỹ Tú;94.944
+Huyện Cù Lao Dung;94.945
+Huyện Long Phú;94.946
+Huyện Mỹ Xuyên;94.947
+Thị xã Ngã Năm;94.948
+Huyện Thạnh Trị;94.949
+Thị xã Vĩnh Châu;94.950
+Huyện Trần Đề;94.951
+Tỉnh Bạc Liêu;95
+Thành phố Bạc Liêu;95.954
+Huyện Hồng Dân;95.956
+Huyện Phước Long;95.957
+Huyện Vĩnh Lợi;95.958
+Huyện Giá Rai;95.959
+Huyện Đông Hải;95.960
+Huyện Hoà Bình;95.961
+Tỉnh Cà Mau;96
+Thành phố Cà Mau;96.964
+Huyện U Minh;96.966
+Huyện Thới Bình;96.967
+Huyện Trần Văn Thời;96.968
+Huyện Cái Nước;96.969
+Huyện Đầm Dơi;96.970
+Huyện Năm Căn;96.971
+Huyện Phú Tân;96.972
+Huyện Ngọc Hiển;96.973
