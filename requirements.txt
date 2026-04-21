@@ -7,9 +7,3 @@ openpyxl
 requests
 xlsxwriter
 Plaintext
-streamlit
-pandas
-supabase
-fpdf2
-xlsxwriter
-plotly
