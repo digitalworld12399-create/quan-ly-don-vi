@@ -5,3 +5,4 @@ supabase
 fpdf2
 openpyxl
 requests
+xlsxwriter
