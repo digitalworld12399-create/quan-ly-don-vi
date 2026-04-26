@@ -196,7 +196,22 @@ cython_debug/
 
 # Cursor
 #  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
-#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
+#  exclude # 1. Bảo mật: KHÔNG đẩy file chứa mã bí mật của Google lên GitHub
+credentials.json
+
+# 2. Loại bỏ các thư mục rác của Python (tự sinh ra khi chạy)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# 3. Loại bỏ các tệp cấu hình riêng của Streamlit
+.streamlit/config.toml
+
+# 4. Loại bỏ các tệp rác của hệ điều hành
+.DS_Store
+Thumbs.dbfrom AI features like autocomplete and code analysis. Recommended for sensitive data
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
