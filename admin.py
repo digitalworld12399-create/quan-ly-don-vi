@@ -67,7 +67,7 @@ try:
 
     # --- 5. SIDEBAR: THỐNG KÊ TỐI ƯU ---
     with st.sidebar:
-        st.header("📊 DASHBOARD")
+        st.header("📊 Chào Nguyễn Ánh")
         
         # KPI dàn hàng ngang
         c_kpi1, c_kpi2 = st.columns(2)
