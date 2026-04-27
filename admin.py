@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 from supabase import create_client, Client
@@ -52,12 +51,6 @@ def export_pdf(row):
 # --- 3. HÀM XUẤT EXCEL THEO BIỂU MẪU ĐẶC THÙ ---
 def export_special_excel(df):
     try:
-        # Ánh xạ các cột theo yêu cầu người dùng
-        # ĐỊA DANH -> huyen_cu
-        # TÊN KHÁCH HÀNG -> ten_don_vi
-        # MÃ QUAN HỆ NGÂN SÁCH -> ma_qhns
-        # MÃ KHÁCH HÀNG (SỐ SERIAL) -> san_pham
-        
         export_df = pd.DataFrame()
         export_df['STT'] = range(1, len(df) + 1)
         export_df['ĐỊA DANH'] = df['huyen_cu']
@@ -72,7 +65,6 @@ def export_special_excel(df):
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             export_df.to_excel(writer, index=False, sheet_name='NHAPLIEU')
-            # Format header
             workbook = writer.book
             worksheet = writer.sheets['NHAPLIEU']
             header_format = workbook.add_format({'bold': True, 'bg_color': '#D7E4BC', 'border': 1})
@@ -107,7 +99,7 @@ try:
     if not df_raw.empty and 'ten_don_vi' in df_raw.columns:
         df_raw['ten_don_vi'] = df_raw['ten_don_vi'].str.upper()
 
-    # --- 6. SIDEBAR: THỐNG KÊ TỐI ƯU ---
+    # --- 6. SIDEBAR: THỐNG KÊ & PHÂN TÍCH ---
     with st.sidebar:
         st.header("📊 DASHBOARD")
         c_kpi1, c_kpi2 = st.columns(2)
@@ -134,97 +126,97 @@ try:
         st.write("---")
         st.subheader("🔗 TIỆN ÍCH")
         st.link_button("🌐 Tra cứu MST Thuế", "https://tracuunnt.gdt.gov.vn/", use_container_width=True)
+        # Nút kiểm tra cập nhật dựa trên thông tin đã lưu
         st.link_button("🔄 Kiểm tra cập nhật", "https://your-update-link.com", use_container_width=True)
         
+        # --- MỤC PHÂN TÍCH CHUYÊN SÂU (Đã di chuyển) ---
+        st.write("---")
+        with st.expander("📈 PHÂN TÍCH CHUYÊN SÂU", expanded=False):
+            st.caption("Chất lượng dữ liệu")
+            valid_stats = df_raw.notna().sum().drop(['id'], errors='ignore')
+            fig_bar = px.bar(
+                x=valid_stats.values, y=valid_stats.index, orientation='h',
+                color_discrete_sequence=['#DAA520']
+            )
+            fig_bar.update_layout(height=300, margin=dict(l=0, r=0, t=0, b=0))
+            st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+
         st.divider()
         if st.button("🚪 Đăng xuất", use_container_width=True, type="secondary"):
             st.session_state.auth = False
             st.rerun()
 
     # --- 7. MÀN HÌNH CHÍNH ---
-    tab_mgt, tab_bi = st.tabs(["📋 QUẢN LÝ NGHIỆP VỤ", "📈 PHÂN TÍCH CHUYÊN SÂU"])
+    st.subheader("📋 QUẢN LÝ NGHIỆP VỤ")
+    
+    col_s1, col_s2 = st.columns([1, 2])
+    with col_s1:
+        sel_h = st.selectbox("Vùng:", ["Tất cả"] + sorted(df_raw['huyen_cu'].dropna().unique().tolist()))
+    with col_s2:
+        search_q = st.text_input("🔍 Tìm kiếm thông minh", placeholder="Tên đơn vị, MST, SĐT, Kế toán...")
 
-    with tab_mgt:
-        col_s1, col_s2 = st.columns([1, 2])
-        with col_s1:
-            sel_h = st.selectbox("Vùng:", ["Tất cả"] + sorted(df_raw['huyen_cu'].dropna().unique().tolist()))
-        with col_s2:
-            search_q = st.text_input("🔍 Tìm kiếm thông minh", placeholder="Tên đơn vị, MST, SĐT, Kế toán...")
+    df_f = df_raw if sel_h == "Tất cả" else df_raw[df_raw['huyen_cu'] == sel_h]
+    if search_q:
+        q = search_q.lower()
+        df_f = df_f[df_f.apply(lambda x: q in str(x.values).lower(), axis=1)]
 
-        df_f = df_raw if sel_h == "Tất cả" else df_raw[df_raw['huyen_cu'] == sel_h]
-        if search_q:
-            q = search_q.lower()
-            df_f = df_f[df_f.apply(lambda x: q in str(x.values).lower(), axis=1)]
+    st.dataframe(
+        df_f[['mst', 'ten_don_vi', 'huyen_cu', 'ke_toan', 'sdt_ke_toan', 'san_pham']],
+        use_container_width=True, hide_index=True,
+        selection_mode="single-row", key="table_select", on_select="rerun"
+    )
 
-        st.dataframe(
-            df_f[['mst', 'ten_don_vi', 'huyen_cu', 'ke_toan', 'sdt_ke_toan', 'san_pham']],
-            use_container_width=True, hide_index=True,
-            selection_mode="single-row", key="table_select", on_select="rerun"
-        )
+    if not df_f.empty:
+        c_ex1, c_ex2 = st.columns(2)
+        with c_ex1:
+            buf_all = io.BytesIO()
+            df_f.to_excel(buf_all, index=False)
+            st.download_button("📥 Tải danh sách gốc (Excel)", buf_all.getvalue(), "HN11_Full_Data.xlsx", use_container_width=True)
+        with c_ex2:
+            special_excel = export_special_excel(df_f)
+            if special_excel:
+                st.download_button("📝 XUẤT MẪU CẤP LICENSE", special_excel, "HN11_Cap_License.xlsx", type="primary", use_container_width=True)
 
-        # Nút xuất file Excel theo biểu mẫu đặc thù
-        if not df_f.empty:
-            c_ex1, c_ex2 = st.columns(2)
-            with c_ex1:
-                buf_all = io.BytesIO()
-                df_f.to_excel(buf_all, index=False)
-                st.download_button("📥 Tải danh sách gốc (Excel)", buf_all.getvalue(), "HN11_Full_Data.xlsx", use_container_width=True)
-            with c_ex2:
-                special_excel = export_special_excel(df_f)
-                if special_excel:
-                    st.download_button("📝 XUẤT MẪU CẤP LICENSE", special_excel, "HN11_Cap_License.xlsx", type="primary", use_container_width=True)
-
-        if st.session_state.table_select.selection.rows:
-            idx = st.session_state.table_select.selection.rows[0]
-            row = df_f.iloc[idx]
+    if st.session_state.table_select.selection.rows:
+        idx = st.session_state.table_select.selection.rows[0]
+        row = df_f.iloc[idx]
+        
+        st.divider()
+        st.subheader(f"🛠️ Hiệu chỉnh: {row['ten_don_vi']}")
+        
+        with st.form("ultimate_edit_form"):
+            f1, f2, f3 = st.columns(3)
+            up = {}
+            with f1:
+                up['ten_don_vi'] = st.text_input("Tên đơn vị", value=str(row['ten_don_vi']).upper())
+                up['mst'] = st.text_input("MST", row['mst'])
+                up['dia_chi'] = st.text_input("Địa chỉ", row['dia_chi'])
+            with f2:
+                up['huyen_cu'] = st.text_input("Khu vực", row['huyen_cu'])
+                up['ma_qhns'] = st.text_input("Mã QHNS", row['ma_qhns'])
+                up['so_tkkb'] = st.text_input("Số TK Kho bạc", row['so_tkkb'])
+            with f3:
+                up['ke_toan'] = st.text_input("Kế toán", row['ke_toan'])
+                up['sdt_ke_toan'] = st.text_input("SĐT", row['sdt_ke_toan'])
+                up['san_pham'] = st.text_input("Mã máy", row['san_pham'])
             
-            st.divider()
-            st.subheader(f"🛠️ Hiệu chỉnh: {row['ten_don_vi']}")
-            
-            with st.form("ultimate_edit_form"):
-                f1, f2, f3 = st.columns(3)
-                up = {}
-                with f1:
-                    up['ten_don_vi'] = st.text_input("Tên đơn vị", value=str(row['ten_don_vi']).upper())
-                    up['mst'] = st.text_input("MST", row['mst'])
-                    up['dia_chi'] = st.text_input("Địa chỉ", row['dia_chi'])
-                with f2:
-                    up['huyen_cu'] = st.text_input("Khu vực", row['huyen_cu'])
-                    up['ma_qhns'] = st.text_input("Mã QHNS", row['ma_qhns'])
-                    up['so_tkkb'] = st.text_input("Số TK Kho bạc", row['so_tkkb'])
-                with f3:
-                    up['ke_toan'] = st.text_input("Kế toán", row['ke_toan'])
-                    up['sdt_ke_toan'] = st.text_input("SĐT", row['sdt_ke_toan'])
-                    up['san_pham'] = st.text_input("Mã máy", row['san_pham'])
-                
-                if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
-                    up['ten_don_vi'] = up['ten_don_vi'].upper()
-                    supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
-                    st.success("Đã cập nhật thành công!")
-                    st.rerun()
+            if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
+                up['ten_don_vi'] = up['ten_don_vi'].upper()
+                supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
+                st.success("Đã cập nhật thành công!")
+                st.rerun()
 
-            b1, b2, b3 = st.columns(3)
-            with b1:
-                sdt = str(row['sdt_ke_toan']).strip()
-                if sdt and sdt != "nan":
-                    st.link_button("💬 ZALO KẾ TOÁN", f"https://zalo.me/{sdt}", use_container_width=True)
-            with b2:
-                pdf_data = export_pdf(row)
-                st.download_button("📄 XUẤT PDF", pdf_data, f"HN11_{row['mst']}.pdf", use_container_width=True)
-            with b3:
-                # Xuất 1 dòng theo biểu mẫu đặc thù
-                row_excel = export_special_excel(pd.DataFrame([row]))
-                st.download_button("📊 XUẤT MẪU LICENSE (DÒNG NÀY)", row_excel, f"License_{row['mst']}.xlsx", use_container_width=True)
-
-    with tab_bi:
-        st.subheader("📊 Phân tích Chất lượng Dữ liệu")
-        valid_stats = df_raw.notna().sum().drop(['id'], errors='ignore')
-        fig_bar = px.bar(
-            x=valid_stats.values, y=valid_stats.index, orientation='h',
-            title="Mức độ hoàn thiện thông tin",
-            color_discrete_sequence=['#DAA520']
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
+        b1, b2, b3 = st.columns(3)
+        with b1:
+            sdt = str(row['sdt_ke_toan']).strip()
+            if sdt and sdt != "nan":
+                st.link_button("💬 ZALO KẾ TOÁN", f"https://zalo.me/{sdt}", use_container_width=True)
+        with b2:
+            pdf_data = export_pdf(row)
+            st.download_button("📄 XUẤT PDF", pdf_data, f"HN11_{row['mst']}.pdf", use_container_width=True)
+        with b3:
+            row_excel = export_special_excel(pd.DataFrame([row]))
+            st.download_button("📊 XUẤT MẪU LICENSE (DÒNG NÀY)", row_excel, f"License_{row['mst']}.xlsx", use_container_width=True)
 
 except Exception as e:
     st.error(f"Lỗi hệ thống: {e}")
