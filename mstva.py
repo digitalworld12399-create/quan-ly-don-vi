@@ -57,7 +57,7 @@ if 'form' not in st.session_state:
     st.session_state.form = {
         "mst": "", "ten": "", "dc": "", "rep": "", "qhns": "", "thue": "", 
         "ma_kb": "", "tk_kb": "", "kt": "", "sdt_kt": "", "chuc_vu": "", 
-        "san_pham": "", # Ô này dùng cho "Mã số máy" nhập tay
+        "san_pham": "", # Ô này dùng cho "Mã máy" nhập tay
         "huyen_cu": LIST_HUYEN[0] if LIST_HUYEN else "Huyện Đồng Văn"
     }
 if 'show_confirm' not in st.session_state: st.session_state.show_confirm = False
@@ -70,7 +70,7 @@ def final_save(mode="NEW"):
     now_obj = datetime.now()
     now_str = now_obj.strftime("%H:%M:%S %d/%m/%Y")
     
-    # Payload cho 'don_vi' table (với 'san_pham' - mã số máy)
+    # Payload cho 'don_vi' table (với 'san_pham' - mã máy)
     payload = {
         "mst": f["mst"], "ten_don_vi": f["ten"], "dia_chi": f["dc"], "ma_qhns": f["qhns"],
         "so_tkkb": f["tk_kb"], "ma_kbnn": f["ma_kb"], "co_quan_thue": f["thue"],
@@ -275,7 +275,7 @@ with col2:
     st.markdown('<p class="field-label">🏛️ Mã Kho bạc Nhà nước <span class="red-star">*</span></p>', unsafe_allow_html=True)
     f["ma_kb"] = st.text_input("f7", value=f["ma_kb"], label_visibility="collapsed")
     
-    st.markdown('<p class="field-label">🧾 Mã số máy (DTSoft điền)</p>', unsafe_allow_html=True)
+    st.markdown('<p class="field-label">🧾 Mã máy</p>', unsafe_allow_html=True)
     f["san_pham"] = st.text_input("f4", value=f["san_pham"], label_visibility="collapsed")
 
 with col3:
