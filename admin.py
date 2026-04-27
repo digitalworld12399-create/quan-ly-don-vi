@@ -74,7 +74,7 @@ try:
 
     # --- 5. SIDEBAR: THỐNG KÊ TỐI ƯU ---
     with st.sidebar:
-        st.header("📊 DASHBOARD")
+        st.header("📊 Chào bạn: Nguyễn Văn Ánh")
         c_kpi1, c_kpi2 = st.columns(2)
         c_kpi1.metric("Tổng đơn vị", len(df_raw))
         missing_sdt = int(df_raw['sdt_ke_toan'].isna().sum())
