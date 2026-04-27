@@ -8,14 +8,14 @@ from fpdf import FPDF
 import plotly.express as px
 from datetime import datetime
 
-# --- 1. CẤU HÌNH ---
+# --- 1. CẤU HÌNH HỆ THỐNG ---
 URL = "https://niqehefvnzwbfwafncej.supabase.co"
 KEY = "sb_publishable_3clZvjfg6EoOxZQ0QzsBOQ_m2v9KiKN"
 supabase: Client = create_client(URL, KEY)
 
-st.set_page_config(page_title="HN11 Admin Ultimate", layout="wide")
+st.set_page_config(page_title="HN11 Admin Pro", layout="wide")
 
-# --- 2. HÀM TẠO QR ---
+# --- 2. HÀM TẠO MÃ QR ---
 def generate_qr(data):
     try:
         qr = qrcode.QRCode(version=1, box_size=10, border=2)
@@ -28,14 +28,14 @@ def generate_qr(data):
     except:
         return None
 
-# --- 3. HÀM XUẤT PDF (FIX LỖI CODEC) ---
+# --- 3. HÀM XUẤT PDF (HỖ TRỢ UNICODE & QR) ---
 def export_pdf(row):
     try:
-        # Sử dụng fpdf2 để hỗ trợ bytes() trực tiếp
+        # Sử dụng fpdf2
         pdf = FPDF()
         pdf.add_page()
         
-        # Cấu hình Font (Phải có file arial.ttf trong thư mục gốc)
+        # Cấu hình Font (Cần file arial.ttf trong thư mục gốc để hiển thị tiếng Việt)
         font_path = "arial.ttf"
         font_name = 'Helvetica'
         if os.path.exists(font_path):
@@ -45,17 +45,17 @@ def export_pdf(row):
         else:
             pdf.set_font('Helvetica', size=16)
 
-        # Chèn QR Code vào PDF
-        qr_content = f"MST: {row.get('mst')}\nDV: {row.get('ten_don_vi')}"
+        # Tạo và chèn QR Code
+        qr_content = f"MST: {row.get('mst')}\nDV: {row.get('ten_don_vi')}\nSDT: {row.get('sdt_ke_toan')}"
         qr_buf = generate_qr(qr_content)
         if qr_buf:
-            temp_qr = f"temp_{row.get('mst')}.png"
+            temp_qr = f"qr_{row.get('mst')}.png"
             with open(temp_qr, "wb") as f:
                 f.write(qr_buf.getvalue())
             pdf.image(temp_qr, x=165, y=10, w=30)
             if os.path.exists(temp_qr): os.remove(temp_qr)
 
-        # Nội dung PDF
+        # Tiêu đề & Nội dung
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
         pdf.set_font(font_name, size=11)
         pdf.ln(10)
@@ -63,62 +63,72 @@ def export_pdf(row):
         fields = {
             "Tên đơn vị": str(row.get('ten_don_vi', '')).upper(),
             "Mã số thuế": "mst", "Địa chỉ": "dia_chi", "Khu vực": "huyen_cu",
-            "SĐT": "sdt_ke_toan", "Sản phẩm": "san_pham"
+            "Mã QHNS": "ma_qhns", "Kế toán": "ke_toan", "SĐT": "sdt_ke_toan", "Mã máy": "san_pham"
         }
         for label, key in fields.items():
             val = str(row.get(key, key)) if key in row else str(key)
             pdf.multi_cell(0, 8, txt=f"{label}: {val}")
             pdf.ln(1)
 
-        # QUAN TRỌNG: Trả về bytes trực tiếp để tránh lỗi utf-8 codec
+        # Xuất nhị phân bytes
         return bytes(pdf.output())
     except Exception as e:
         st.error(f"Lỗi tạo PDF: {e}")
         return b""
 
-# --- 4. GIAO DIỆN ---
+# --- 4. ĐĂNG NHẬP ---
 if "auth" not in st.session_state: st.session_state.auth = False
 if not st.session_state.auth:
     with st.container(border=True):
-        u = st.text_input("Admin User")
-        p = st.text_input("Password", type="password")
-        if st.button("ĐĂNG NHẬP"):
+        st.subheader("🛡️ Quản trị viên")
+        u = st.text_input("Tài khoản")
+        p = st.text_input("Mật khẩu", type="password")
+        if st.button("ĐĂNG NHẬP", use_container_width=True):
             if u == "kh" and p == "a11":
                 st.session_state.auth = True
                 st.rerun()
     st.stop()
 
+# --- 5. TẢI DỮ LIỆU ---
 try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
-    # Sửa lỗi so sánh str và float
+    
+    # Xử lý lỗi so sánh và dữ liệu rỗng
     df_raw['huyen_cu'] = df_raw['huyen_cu'].fillna("Chưa rõ").astype(str)
-    list_huyen = sorted(df_raw['huyen_cu'].unique().tolist())
+    list_huyen = sorted([h for h in df_raw['huyen_cu'].unique() if h.strip() != ""])
 
-    # SIDEBAR: PHÂN TÍCH CHUYÊN SÂU NẰM CUỐI
+    # SIDEBAR
     with st.sidebar:
         st.header("📊 DASHBOARD")
         st.metric("Tổng đơn vị", len(df_raw))
         st.write("---")
         st.subheader("🔗 TIỆN ÍCH")
-        st.link_button("🌐 Tra cứu MST", "https://tracuunnt.gdt.gov.vn/")
-        st.link_button("🔄 Kiểm tra cập nhật", "https://your-link.com")
+        st.link_button("🌐 Tra cứu MST", "https://tracuunnt.gdt.gov.vn/", use_container_width=True)
+        # Nút kiểm tra cập nhật
+        st.link_button("🔄 Kiểm tra cập nhật", "https://github.com/", use_container_width=True)
         
+        # MỤC PHÂN TÍCH CHUYÊN SÂU NẰM CUỐI CÙNG
         st.write("---")
         with st.expander("📈 PHÂN TÍCH CHUYÊN SÂU", expanded=False):
             valid_stats = df_raw.notna().sum().drop(['id'], errors='ignore')
-            fig = px.bar(x=valid_stats.values, y=valid_stats.index, orientation='h')
+            fig = px.bar(x=valid_stats.values, y=valid_stats.index, orientation='h', color_discrete_sequence=['#ffaa00'])
+            fig.update_layout(height=300, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig, use_container_width=True)
 
+        st.divider()
         if st.button("🚪 Đăng xuất", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
     # MÀN HÌNH CHÍNH
-    st.subheader("📋 QUẢN LÝ")
-    sel_h = st.selectbox("Vùng:", ["Tất cả"] + list_huyen)
-    search = st.text_input("🔍 Tìm kiếm...")
-    
+    st.subheader("📋 QUẢN LÝ ĐƠN VỊ")
+    c_s1, c_s2 = st.columns([1, 2])
+    with c_s1:
+        sel_h = st.selectbox("Lọc khu vực:", ["Tất cả"] + list_huyen)
+    with c_s2:
+        search = st.text_input("🔍 Tìm kiếm nhanh...")
+
     df_f = df_raw if sel_h == "Tất cả" else df_raw[df_raw['huyen_cu'] == sel_h]
     if search:
         df_f = df_f[df_f.apply(lambda x: search.lower() in str(x.values).lower(), axis=1)]
@@ -127,18 +137,21 @@ try:
                  use_container_width=True, hide_index=True, 
                  selection_mode="single-row", key="table_select", on_select="rerun")
 
+    # XỬ LÝ DÒNG ĐƯỢC CHỌN
     if st.session_state.table_select.selection.rows:
         row = df_f.iloc[st.session_state.table_select.selection.rows[0]]
         st.divider()
-        col1, col2 = st.columns(2)
-        with col1:
-            pdf_bytes = export_pdf(row)
-            if pdf_bytes:
-                st.download_button("📄 TẢI PDF (CÓ QR)", pdf_bytes, f"{row['mst']}.pdf", use_container_width=True)
-        with col2:
-            sdt = str(row['sdt_ke_toan'])
-            if sdt != "nan":
-                st.link_button("💬 ZALO", f"https://zalo.me/{sdt}", use_container_width=True)
+        
+        with st.expander(f"🛠️ CHI TIẾT: {row['ten_don_vi']}", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                pdf_bytes = export_pdf(row)
+                if pdf_bytes:
+                    st.download_button("📄 TẢI PHIẾU PDF (CÓ QR)", pdf_bytes, f"{row['mst']}.pdf", type="primary", use_container_width=True)
+            with col2:
+                sdt = str(row['sdt_ke_toan'])
+                if sdt != "nan" and sdt.strip() != "":
+                    st.link_button("💬 LIÊN HỆ ZALO", f"https://zalo.me/{sdt.strip()}", use_container_width=True)
 
 except Exception as e:
-    st.error(f"Lỗi: {e}")
+    st.error(f"Lỗi hệ thống: {e}")
