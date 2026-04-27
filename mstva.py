@@ -141,8 +141,8 @@ with st.sidebar:
     # Phần thông tin hệ thống
     st.markdown(f"""
     <div style="background-color:#f0f2f6; padding:15px; border-radius:10px; border-left: 5px solid #1E90FF;">
-        <p style="margin-bottom:5px;">👤 <b>Quản trị:</b> Nguyễn Ánh</p>
-        <p style="margin-bottom:5px;">📞 <b>ĐT:</b> 0969.338.332</p>
+        <p style="margin-bottom:5px;">👤 <b></b>*****</p>
+        <p style="margin-bottom:5px;">📞 <b></b> ***</p>
     </div>
     """, unsafe_allow_html=True)
     
