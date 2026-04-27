@@ -140,27 +140,17 @@ with st.sidebar:
 
     # Phần thông tin hệ thống
     st.markdown(f"""
-    <div style="background-color: #fdfae6; padding: 25px; border-radius: 12px; border: 1px solid #d4a017; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-        <div style="background-color: #8b4513; color: white; padding: 8px; border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 20px;">👤</span>
-        </div>
-        <h4 style="color: #5d4037; margin: 0; font-size: 1.2em; font-weight: 600;">Hoàn Thiện Thông Tin Người Dùng</h4>
-    </div>
-    
-    <div style="margin-left: 55px;">
-        <p style="color: #4e342e; margin: 0; line-height: 1.6; font-size: 1em;">
-            Kính thưa Anh/Chị, để đảm bảo quyền lợi và nhận được sự hỗ trợ chuyên biệt nhất trong quá trình xử lý nghiệp vụ, kính mời Anh/Chị vui lòng rà soát và cập nhật đầy đủ thông tin cá nhân. 
-        </p>
-        <p style="color: #795548; margin-top: 8px; font-size: 0.9em; font-style: italic;">
-            (Sự chính xác của thông tin sẽ giúp chúng tôi phục vụ Anh/Chị chu đáo và bảo mật hơn)
-        </p>
-        
-        <div style="margin-top: 20px;">
-            <a href="#" style="background-color: #8b4513; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.9em; display: inline-block; transition: background 0.3s;">
-                CẬP NHẬT THÔNG TIN
-            </a>
-        </div>
+    <div style="background-color: #fdfae6; padding: 20px; border-radius: 12px; border: 1px solid #d4a017; font-family: 'Segoe UI', Arial, sans-serif; text-align: center;">
+    <h4 style="color: #5d4037; margin: 0 0 10px 0; font-size: 1.2em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+        Hoàn Thiện Thông Tin Người Dùng
+    </h4>
+    <p style="color: #795548; margin: 0; font-size: 1.05em; line-height: 1.5;">
+        Kính mời Anh/Chị cập nhật đầy đủ thông tin để nhận được sự hỗ trợ tốt nhất.
+    </p>
+    <div style="margin-top: 15px;">
+        <a href="#" style="color: #8b4513; font-weight: bold; text-decoration: none; border-bottom: 2px solid #8b4513; padding-bottom: 2px;">
+            Cập nhật ngay tại đây →
+        </a>
     </div>
 </div>
     """, unsafe_allow_html=True)
