@@ -3,6 +3,7 @@ import pandas as pd
 from supabase import create_client, Client
 import io
 import os
+import qrcode
 from fpdf import FPDF
 import plotly.express as px
 from datetime import datetime
@@ -14,22 +15,48 @@ supabase: Client = create_client(URL, KEY)
 
 st.set_page_config(page_title="HN11 Admin Ultimate", layout="wide")
 
-# --- 2. HÀM HỖ TRỢ PDF UNICODE ---
+# --- 2. HÀM TẠO MÃ QR ---
+def generate_qr(data):
+    try:
+        qr = qrcode.QRCode(version=1, box_size=10, border=2)
+        qr.add_data(data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        img_buffer = io.BytesIO()
+        img.save(img_buffer, format="PNG")
+        return img_buffer
+    except Exception as e:
+        st.error(f"Lỗi tạo QR: {e}")
+        return None
+
+# --- 3. HÀM XUẤT PDF CÓ QR CODE ---
 def export_pdf(row):
     try:
         pdf = FPDF()
         pdf.add_page()
+        
+        # Cấu hình Font
         font_path = "arial.ttf"
         if os.path.exists(font_path):
             pdf.add_font('ArialVN', '', font_path)
-            pdf.set_font('ArialVN', size=16)
             font_name = 'ArialVN'
         else:
-            pdf.set_font('Helvetica', size=16)
             font_name = 'Helvetica'
 
+        # Chèn Mã QR vào góc trên bên phải
+        qr_content = f"MST: {row.get('mst')}\nDV: {row.get('ten_don_vi')}\nSĐT: {row.get('sdt_ke_toan')}"
+        qr_img = generate_qr(qr_content)
+        if qr_img:
+            with open("temp_qr.png", "wb") as f:
+                f.write(qr_img.getvalue())
+            pdf.image("temp_qr.png", x=165, y=10, w=35)
+
+        # Tiêu đề
+        pdf.set_font(font_name, size=16)
         ten_dv_hoa = str(row.get('ten_don_vi', '')).upper()
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
+        
+        # Nội dung
         pdf.set_font(font_name, size=11)
         pdf.ln(10)
         
@@ -43,12 +70,15 @@ def export_pdf(row):
             val = str(row.get(key, key)) if isinstance(key, str) and key in row else str(key)
             pdf.multi_cell(0, 8, txt=f"{label}: {val}")
             pdf.ln(1)
-        return bytes(pdf.output())
+
+        result = bytes(pdf.output())
+        if os.path.exists("temp_qr.png"): os.remove("temp_qr.png")
+        return result
     except Exception as e:
         st.error(f"Lỗi tạo PDF: {e}")
         return None
 
-# --- 3. HÀM XUẤT EXCEL THEO BIỂU MẪU ĐẶC THÙ ---
+# --- 4. HÀM XUẤT EXCEL ĐẶC THÙ ---
 def export_special_excel(df):
     try:
         export_df = pd.DataFrame()
@@ -71,13 +101,12 @@ def export_special_excel(df):
             for col_num, value in enumerate(export_df.columns.values):
                 worksheet.write(0, col_num, value, header_format)
                 worksheet.set_column(col_num, col_num, 20)
-        
         return output.getvalue()
     except Exception as e:
-        st.error(f"Lỗi xuất Excel đặc thù: {e}")
+        st.error(f"Lỗi xuất Excel: {e}")
         return None
 
-# --- 4. GIAO DIỆN ĐĂNG NHẬP ---
+# --- 5. ĐĂNG NHẬP ---
 if "auth" not in st.session_state: st.session_state.auth = False
 if not st.session_state.auth:
     with st.container(border=True):
@@ -91,69 +120,54 @@ if not st.session_state.auth:
             else: st.error("Sai thông tin đăng nhập!")
     st.stop()
 
-# --- 5. TẢI DỮ LIỆU & XỬ LÝ ---
+# --- 6. XỬ LÝ DỮ LIỆU ---
 try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
-
     if not df_raw.empty and 'ten_don_vi' in df_raw.columns:
         df_raw['ten_don_vi'] = df_raw['ten_don_vi'].str.upper()
 
-    # --- 6. SIDEBAR: THỐNG KÊ & PHÂN TÍCH ---
+    # --- 7. SIDEBAR (CHỨA PHÂN TÍCH CHUYÊN SÂU CUỐI CÙNG) ---
     with st.sidebar:
         st.header("📊 DASHBOARD")
-        c_kpi1, c_kpi2 = st.columns(2)
-        c_kpi1.metric("Tổng đơn vị", len(df_raw))
-        missing_sdt = int(df_raw['sdt_ke_toan'].isna().sum())
-        c_kpi2.metric("Thiếu SĐT", missing_sdt, delta=f"-{missing_sdt}", delta_color="inverse")
+        c1, c2 = st.columns(2)
+        c1.metric("Tổng đơn vị", len(df_raw))
+        missing = int(df_raw['sdt_ke_toan'].isna().sum())
+        c2.metric("Thiếu SĐT", missing, delta=f"-{missing}", delta_color="inverse")
         
         st.write("---")
         if not df_raw.empty:
-            st.caption("**Tỷ lệ đơn vị theo khu vực**")
+            st.caption("**Khu vực**")
             df_stats = df_raw['huyen_cu'].value_counts().reset_index()
-            fig_side = px.pie(
-                df_stats, values='count', names='huyen_cu',
-                color_discrete_sequence=['#8B4513', '#DAA520', '#D2B48C', '#F4A460']
-            )
-            fig_side.update_layout(
-                showlegend=True,
-                legend=dict(orientation="h", yanchor="top", y=-0.1, xanchor="center", x=0.5, font=dict(size=10)),
-                margin=dict(t=10, b=10, l=10, r=10),
-                height=250
-            )
-            st.plotly_chart(fig_side, use_container_width=True, config={'displayModeBar': False})
+            fig_pie = px.pie(df_stats, values='count', names='huyen_cu', height=200)
+            fig_pie.update_layout(showlegend=False, margin=dict(t=0, b=0, l=0, r=0))
+            st.plotly_chart(fig_pie, use_container_width=True)
 
-        st.write("---")
         st.subheader("🔗 TIỆN ÍCH")
-        st.link_button("🌐 Tra cứu MST Thuế", "https://tracuunnt.gdt.gov.vn/", use_container_width=True)
-        # Nút kiểm tra cập nhật dựa trên thông tin đã lưu
+        st.link_button("🌐 Tra cứu MST", "https://tracuunnt.gdt.gov.vn/", use_container_width=True)
+        # Link cập nhật theo yêu cầu người dùng
         st.link_button("🔄 Kiểm tra cập nhật", "https://your-update-link.com", use_container_width=True)
         
-        # --- MỤC PHÂN TÍCH CHUYÊN SÂU (Đã di chuyển) ---
+        # MỤC PHÂN TÍCH CHUYÊN SÂU (Cuối cùng bên trái)
         st.write("---")
         with st.expander("📈 PHÂN TÍCH CHUYÊN SÂU", expanded=False):
-            st.caption("Chất lượng dữ liệu")
             valid_stats = df_raw.notna().sum().drop(['id'], errors='ignore')
-            fig_bar = px.bar(
-                x=valid_stats.values, y=valid_stats.index, orientation='h',
-                color_discrete_sequence=['#DAA520']
-            )
+            fig_bar = px.bar(x=valid_stats.values, y=valid_stats.index, orientation='h')
             fig_bar.update_layout(height=300, margin=dict(l=0, r=0, t=0, b=0))
-            st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+            st.plotly_chart(fig_bar, use_container_width=True)
 
         st.divider()
-        if st.button("🚪 Đăng xuất", use_container_width=True, type="secondary"):
+        if st.button("🚪 Đăng xuất", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
-    # --- 7. MÀN HÌNH CHÍNH ---
+    # --- 8. MÀN HÌNH CHÍNH ---
     st.subheader("📋 QUẢN LÝ NGHIỆP VỤ")
-    
     col_s1, col_s2 = st.columns([1, 2])
     with col_s1:
         sel_h = st.selectbox("Vùng:", ["Tất cả"] + sorted(df_raw['huyen_cu'].dropna().unique().tolist()))
     with col_s2:
-        search_q = st.text_input("🔍 Tìm kiếm thông minh", placeholder="Tên đơn vị, MST, SĐT, Kế toán...")
+        search_q = st.text_input("🔍 Tìm kiếm", placeholder="Tên, MST, SĐT...")
 
     df_f = df_raw if sel_h == "Tất cả" else df_raw[df_raw['huyen_cu'] == sel_h]
     if search_q:
@@ -166,29 +180,29 @@ try:
         selection_mode="single-row", key="table_select", on_select="rerun"
     )
 
+    # Xuất file danh sách
     if not df_f.empty:
         c_ex1, c_ex2 = st.columns(2)
         with c_ex1:
-            buf_all = io.BytesIO()
-            df_f.to_excel(buf_all, index=False)
-            st.download_button("📥 Tải danh sách gốc (Excel)", buf_all.getvalue(), "HN11_Full_Data.xlsx", use_container_width=True)
+            buf = io.BytesIO()
+            df_f.to_excel(buf, index=False)
+            st.download_button("📥 Xuất Excel Gốc", buf.getvalue(), "HN11_Data.xlsx", use_container_width=True)
         with c_ex2:
-            special_excel = export_special_excel(df_f)
-            if special_excel:
-                st.download_button("📝 XUẤT MẪU CẤP LICENSE", special_excel, "HN11_Cap_License.xlsx", type="primary", use_container_width=True)
+            spec = export_special_excel(df_f)
+            st.download_button("📝 Mẫu Cấp License", spec, "HN11_License.xlsx", type="primary", use_container_width=True)
 
+    # Hiệu chỉnh dòng đã chọn
     if st.session_state.table_select.selection.rows:
         idx = st.session_state.table_select.selection.rows[0]
         row = df_f.iloc[idx]
-        
         st.divider()
         st.subheader(f"🛠️ Hiệu chỉnh: {row['ten_don_vi']}")
         
-        with st.form("ultimate_edit_form"):
+        with st.form("edit_form"):
             f1, f2, f3 = st.columns(3)
             up = {}
             with f1:
-                up['ten_don_vi'] = st.text_input("Tên đơn vị", value=str(row['ten_don_vi']).upper())
+                up['ten_don_vi'] = st.text_input("Tên đơn vị", value=row['ten_don_vi'])
                 up['mst'] = st.text_input("MST", row['mst'])
                 up['dia_chi'] = st.text_input("Địa chỉ", row['dia_chi'])
             with f2:
@@ -203,20 +217,21 @@ try:
             if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
                 up['ten_don_vi'] = up['ten_don_vi'].upper()
                 supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
-                st.success("Đã cập nhật thành công!")
+                st.success("Đã cập nhật!")
                 st.rerun()
 
+        # Nút chức năng cho dòng chọn
         b1, b2, b3 = st.columns(3)
         with b1:
             sdt = str(row['sdt_ke_toan']).strip()
             if sdt and sdt != "nan":
-                st.link_button("💬 ZALO KẾ TOÁN", f"https://zalo.me/{sdt}", use_container_width=True)
+                st.link_button("💬 ZALO", f"https://zalo.me/{sdt}", use_container_width=True)
         with b2:
             pdf_data = export_pdf(row)
-            st.download_button("📄 XUẤT PDF", pdf_data, f"HN11_{row['mst']}.pdf", use_container_width=True)
+            st.download_button("📄 XUẤT PDF (CÓ QR)", pdf_data, f"HN11_{row['mst']}.pdf", use_container_width=True)
         with b3:
-            row_excel = export_special_excel(pd.DataFrame([row]))
-            st.download_button("📊 XUẤT MẪU LICENSE (DÒNG NÀY)", row_excel, f"License_{row['mst']}.xlsx", use_container_width=True)
+            r_excel = export_special_excel(pd.DataFrame([row]))
+            st.download_button("📊 Mẫu License Dòng Này", r_excel, f"License_{row['mst']}.xlsx", use_container_width=True)
 
 except Exception as e:
     st.error(f"Lỗi hệ thống: {e}")
