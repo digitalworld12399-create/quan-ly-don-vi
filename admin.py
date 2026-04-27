@@ -14,62 +14,59 @@ supabase: Client = create_client(URL, KEY)
 
 st.set_page_config(page_title="HN11 Admin Ultimate", layout="wide")
 
-# --- 2. HÀM TRUY XUẤT DỮ LIỆU THÔNG MINH (TRÁNH TRỐNG CỘT) ---
-def get_safe_data(df, priority_cols):
-    """Tìm cột dữ liệu đầu tiên khớp trong danh sách ưu tiên"""
-    for col in priority_cols:
-        if col in df.columns:
-            return df[col].fillna("")
-    return pd.Series([""] * len(df))
-
-# --- 3. HÀM XUẤT EXCEL (ĐÃ HIỆU CHỈNH LẤY ĐỦ THÔNG TIN) ---
+# --- 2. HÀM XUẤT EXCEL (SỬA LỖI LẤY SỐ LIỆU CỘT B, C, D, E) ---
 def export_special_excel(df):
     try:
         if df.empty:
             return None
         
+        # Tạo DataFrame mới theo cấu trúc biểu mẫu yêu cầu
         export_df = pd.DataFrame()
+        
+        # Cột A: STT
         export_df['STT'] = range(1, len(df) + 1)
         
-        # Lấy thông tin từ các cột tương ứng trong Database
-        # ĐỊA DANH lấy từ huyen_cu
-        export_df['ĐỊA DANH'] = get_safe_data(df, ['huyen_cu', 'khu_vuc', 'dia_danh'])
+        # Cột B: ĐỊA DANH (Lấy từ huyen_cu)
+        export_df['ĐỊA DANH'] = df['huyen_cu'].fillna('')
         
-        # TÊN KHÁCH HÀNG lấy từ ten_don_vi
-        ten_dv = get_safe_data(df, ['ten_don_vi', 'ten_khach_hang'])
-        export_df['TÊN KHÁCH HÀNG'] = ten_dv.apply(lambda x: str(x).upper())
+        # Cột C: TÊN KHÁCH HÀNG (Lấy từ ten_don_vi và viết hoa)
+        export_df['TÊN KHÁCH HÀNG'] = df['ten_don_vi'].fillna('').astype(str).str.upper()
         
-        # MÃ QUAN HỆ NGÂN SÁCH lấy từ ma_qhns
-        export_df['MÃ QUAN HỆ NGÂN SÁCH'] = get_safe_data(df, ['ma_qhns', 'qhns'])
+        # Cột D: MÃ QUAN HỆ NGÂN SÁCH (Lấy từ ma_qhns)
+        export_df['MÃ QUAN HỆ NGÂN SÁCH'] = df['ma_qhns'].fillna('')
         
-        # MÃ KHÁCH HÀNG (SỐ SERIAL) lấy từ san_pham
-        export_df['MÃ KHÁCH HÀNG (SỐ SERIAL)'] = get_safe_data(df, ['san_pham', 'ma_may', 'serial'])
+        # Cột E: MÃ KHÁCH HÀNG (SỐ SERIAL) (Lấy từ san_pham)
+        export_df['MÃ KHÁCH HÀNG (SỐ SERIAL)'] = df['san_pham'].fillna('')
         
-        # Các cột mặc định theo yêu cầu
+        # Cột F, G, H, I: Các giá trị mặc định
         export_df['PHẦN MỀM'] = "KTHC"
         export_df['LOẠI CÀI ĐẶT'] = "Chuyển giao"
         export_df['NGÀY KÝ HỢP ĐỒNG'] = datetime.now().strftime("%d/%m/%Y")
         export_df['LÝ DO'] = "Cài mới"
         
+        # Xuất ra file Excel
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             export_df.to_excel(writer, index=False, sheet_name='NHAPLIEU')
+            
             workbook = writer.book
             worksheet = writer.sheets['NHAPLIEU']
             
-            # Định dạng tiêu đề cho giống mẫu
+            # Định dạng Header cho đẹp
             header_format = workbook.add_format({
                 'bold': True, 'bg_color': '#D7E4BC', 'border': 1, 'align': 'center'
             })
+            
             for col_num, value in enumerate(export_df.columns.values):
                 worksheet.write(0, col_num, value, header_format)
-                worksheet.set_column(col_num, col_num, 25)
+                worksheet.set_column(col_num, col_num, 25) # Chỉnh độ rộng cột
+                
         return output.getvalue()
     except Exception as e:
-        st.error(f"Lỗi kết xuất Excel: {e}")
+        st.error(f"Lỗi xuất Excel: {e}")
         return None
 
-# --- 4. ĐĂNG NHẬP ---
+# --- 3. GIAO DIỆN ĐĂNG NHẬP ---
 if "auth" not in st.session_state: st.session_state.auth = False
 if not st.session_state.auth:
     with st.container(border=True):
@@ -83,77 +80,54 @@ if not st.session_state.auth:
             else: st.error("Sai thông tin!")
     st.stop()
 
-# --- 5. TẢI DỮ LIỆU ---
+# --- 4. TẢI DỮ LIỆU VÀ HIỂN THỊ ---
 try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
 
-    # --- 6. SIDEBAR ---
+    # Sidebar: Thống kê nhanh
     with st.sidebar:
         st.header("📊 DASHBOARD")
-        c1, c2 = st.columns(2)
-        c1.metric("Tổng đơn vị", len(df_raw))
-        missing_sdt = int(df_raw['sdt_ke_toan'].isna().sum())
-        c2.metric("Thiếu SĐT", missing_sdt)
-        
-        st.write("---")
-        if not df_raw.empty:
-            df_stats = df_raw['huyen_cu'].value_counts().reset_index()
-            fig_side = px.pie(df_stats, values='count', names='huyen_cu',
-                             color_discrete_sequence=['#8B4513', '#DAA520', '#D2B48C'])
-            fig_side.update_layout(showlegend=True, legend=dict(orientation="h", y=-0.1), height=230, margin=dict(t=0,b=0,l=0,r=0))
-            st.plotly_chart(fig_side, use_container_width=True, config={'displayModeBar': False})
-        
+        st.metric("Tổng đơn vị", len(df_raw))
         st.divider()
-        st.link_button("🌐 Tra cứu MST Thuế", "https://tracuunnt.gdt.gov.vn/", use_container_width=True)
-        st.link_button("🔄 Kiểm tra cập nhật", "https://your-update-link.com", use_container_width=True)
         if st.button("🚪 Đăng xuất", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
-    # --- 7. GIAO DIỆN CHÍNH ---
-    tab1, tab2 = st.tabs(["📋 QUẢN LÝ", "📈 THỐNG KÊ"])
+    # Màn hình chính
+    tab_list, tab_analysis = st.tabs(["📋 QUẢN LÝ", "📈 PHÂN TÍCH"])
     
-    with tab1:
-        vung = st.selectbox("Lọc theo vùng:", ["Tất cả"] + sorted(df_raw['huyen_cu'].dropna().unique().tolist()))
-        tim = st.text_input("🔍 Tìm kiếm đơn vị...")
-        
-        df_f = df_raw if vung == "Tất cả" else df_raw[df_raw['huyen_cu'] == vung]
-        if tim:
-            df_f = df_f[df_f.apply(lambda x: tim.lower() in str(x.values).lower(), axis=1)]
+    with tab_list:
+        search = st.text_input("🔍 Tìm kiếm đơn vị (MST, Tên...):")
+        df_f = df_raw.copy()
+        if search:
+            df_f = df_f[df_f.apply(lambda x: search.lower() in str(x.values).lower(), axis=1)]
         
         st.dataframe(df_f[['mst', 'ten_don_vi', 'huyen_cu', 'ma_qhns', 'san_pham']], 
-                     use_container_width=True, hide_index=True, selection_mode="single-row", key="table", on_select="rerun")
+                     use_container_width=True, hide_index=True, selection_mode="single-row", key="tbl", on_select="rerun")
         
-        # NÚT XUẤT TỔNG HỢP
+        # NÚT XUẤT TỔNG HỢP (XUẤT TOÀN BỘ DANH SÁCH ĐANG LỌC)
         if not df_f.empty:
-            st.download_button("📝 XUẤT MẪU CẤP LICENSE (DANH SÁCH LỌC)", 
-                             export_special_excel(df_f), "HN11_License_List.xlsx", 
+            st.download_button("📝 XUẤT MẪU CẤP LICENSE (TỔNG HỢP)", 
+                             export_special_excel(df_f), "Mau_License_Tong_Hop.xlsx", 
                              type="primary", use_container_width=True)
 
-        # CHI TIẾT VÀ XUẤT LẺ
-        if st.session_state.table.selection.rows:
-            idx = st.session_state.table.selection.rows[0]
+        # CHI TIẾT DÒNG ĐANG CHỌN
+        if st.session_state.tbl.selection.rows:
+            idx = st.session_state.tbl.selection.rows[0]
             row = df_f.iloc[idx]
             st.divider()
             
-            with st.form("edit_form"):
-                st.write(f"### Hiệu chỉnh: {row['ten_don_vi']}")
-                c1, c2, c3 = st.columns(3)
-                up = {
-                    'ten_don_vi': c1.text_input("Tên đơn vị", row['ten_don_vi']).upper(),
-                    'huyen_cu': c2.text_input("Khu vực", row['huyen_cu']),
-                    'ma_qhns': c3.text_input("Mã QHNS", row['ma_qhns']),
-                    'san_pham': c3.text_input("Số Serial", row['san_pham'])
-                }
-                if st.form_submit_button("💾 CẬP NHẬT DATABASE"):
-                    supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
-                    st.success("Đã cập nhật!"); st.rerun()
-
-            # Nút xuất lẻ cho dòng được chọn
-            st.download_button(f"📊 XUẤT MẪU LICENSE CHO {row['mst']}", 
-                             export_special_excel(pd.DataFrame([row])), 
-                             f"License_{row['mst']}.xlsx", use_container_width=True)
+            st.subheader(f"🛠️ Đang chọn: {row['ten_don_vi']}")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                # Nút xuất lẻ cho 1 đơn vị
+                single_excel = export_special_excel(pd.DataFrame([row]))
+                st.download_button(f"📊 XUẤT MẪU LICENSE: {row['mst']}", 
+                                 single_excel, f"License_{row['mst']}.xlsx", use_container_width=True)
+            with col_b:
+                st.info("💡 Lưu ý: Hệ thống đã lấy thông tin từ 'huyen_cu', 'ten_don_vi', 'ma_qhns' và 'san_pham' để điền vào tệp Excel.")
 
 except Exception as e:
     st.error(f"Lỗi: {e}")
