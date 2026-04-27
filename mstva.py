@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 import time
 import pandas as pd
-import os
+import os # Bổ sung thư viện os để kiểm tra tệp tồn tại
 
 # --- 1. KẾT NỐI HỆ THỐNG ---
 URL = "https://niqehefvnzwbfwafncej.supabase.co"
@@ -13,16 +13,14 @@ KEY = "sb_publishable_3clZvjfg6EoOxZQ0QzsBOQ_m2v9KiKN"
 supabase: Client = create_client(URL, KEY)
 
 # Cấu hình API và Telegram
-# LƯU Ý: Tuyệt đối không để lộ mật khẩu, API key, Client ID trong code thực tế.
-# Bạn nên sử dụng st.secrets hoặc biến môi trường.
-X_CLIENT_ID = st.secrets["X_CLIENT_ID"] if "X_CLIENT_ID" in st.secrets else "YOUR_CLIENT_ID"
-X_API_KEY = st.secrets["X_API_KEY"] if "X_API_KEY" in st.secrets else "YOUR_API_KEY"
-TELE_TOKEN = st.secrets["TELE_TOKEN"] if "TELE_TOKEN" in st.secrets else "8208357912:AAHm-dNSkmCl4HgxpgnSCjoH6uGdjjZvsMA"
-TELE_CHAT_ID = st.secrets["TELE_CHAT_ID"] if "TELE_CHAT_ID" in st.secrets else "7446579212"
+X_CLIENT_ID = "YOUR_CLIENT_ID" 
+X_API_KEY = "YOUR_API_KEY"
+TELE_TOKEN = "8208357912:AAHm-dNSkmCl4HgxpgnSCjoH6uGdjjZvsMA"
+TELE_CHAT_ID = "7446579212" 
 
-# File name logo
-# Tệp logo.png cần được đặt cùng cấp với tệp code .py này.
-# Logo này có tông màu Xanh Navy, Vàng Gold và Trắng trên nền trắng.
+# === PHẦN LOGO MỚI ĐƯỢC BỔ SUNG ===
+# Tên tệp logo của bạn. Tệp này cần được đặt cùng cấp với tệp code .py này.
+# Ví dụ: "logo.png", "logo.jpg", v.v.
 LOGO_FILE = "logo.png"
 
 # --- 2. HÀM HỖ TRỢ ---
@@ -71,9 +69,6 @@ def final_save(mode="NEW"):
     f = st.session_state.form
     now_obj = datetime.now()
     now_str = now_obj.strftime("%H:%M:%S %d/%m/%Y")
-    
-    # Chuẩn hóa tên đơn vị thành chữ hoa
-    f['ten'] = str(f['ten']).strip().upper()
     
     # Payload cho 'don_vi' table (với 'san_pham' - mã số máy)
     payload = {
@@ -135,7 +130,8 @@ with st.sidebar:
     # === PHẦN LOGO MỚI ĐƯỢC BỔ SUNG ===
     # Hiển thị logo ở trên cùng của Sidebar
     if os.path.exists(LOGO_FILE):
-        st.image(LOGO_FILE, use_column_width=True)
+        # use_container_width=True giúp logo tự động căn giữa và điều chỉnh độ rộng
+        st.image(LOGO_FILE, use_container_width=True) 
     else:
         # Nếu không tìm thấy file, hiển thị thông báo thay thế
         st.error(f"Không tìm thấy tệp logo tại: {LOGO_FILE}")
@@ -204,32 +200,23 @@ with c_btn:
                     "huyen_cu": d.get("huyen_cu", LIST_HUYEN[0] if LIST_HUYEN else "")
                 })
                 st.session_state.search_status = "found"
-                speak_male("Đã tìm thấy thông tin trên hệ thống, bạn có muốn cập nhật lại thông tin mới cho bản ghi?")
             else:
                 # 5b. Tra cứu qua API XInvoice nếu chưa có trong DB
                 try:
-                    # Gửi request API (đã sử dụng st.secrets cho bảo mật)
+                    # Gửi request API (Bạn nên sử dụng st.secrets cho bảo mật)
                     r = requests.get(f"https://api.xinvoice.vn/gdt-api/tax-payer/{v_mst}", headers={'client-id': X_CLIENT_ID, 'api-key': X_API_KEY}, timeout=10)
                     info = r.json().get("data", r.json())
                     if info and info.get("name"):
                         # Chuẩn hóa tên đơn vị
                         ten_dv_toupper = str(info.get("name", "")).upper()
-                        # Cập nhật thông tin tìm được vào form
                         st.session_state.form.update({"mst": v_mst, "ten": ten_dv_toupper, "dc": info.get("address", "")})
                         st.session_state.search_status = "found"
-                        speak_male("Hệ thống đã tìm thấy thông tin đơn vị, vui lòng bổ sung đầy đủ thông tin còn lại trước khi xác nhận")
                     else: st.session_state.search_status = "not_found"
                 except Exception as e: st.session_state.search_status = "not_found"
             
             # Thông báo khi không tìm thấy
             if st.session_state.search_status == "not_found":
                 speak_male("Không tìm thấy thông tin mã số thuế, vui lòng nhập tay")
-                # Reset lại form về trạng thái trống
-                for key in st.session_state.form.keys():
-                    if key != 'huyen_cu':
-                        st.session_state.form[key] = ""
-                    else:
-                        st.session_state.form['huyen_cu'] = LIST_HUYEN[0] if LIST_HUYEN else ""
             st.rerun()
 
 # Hiển thị thông báo trạng thái tra cứu
@@ -262,15 +249,17 @@ with col1:
     f["huyen_cu"] = st.selectbox("f_huyen", LIST_HUYEN, index=idx_huyen, label_visibility="collapsed")
 
 with col2:
-    st.markdown('<p class="field-label">🏦 Mã QHNS (8 chữ số) <span class="red-star">*</span></p>', unsafe_allow_html=True)
-    qhns_val = st.text_input("f5", value=f["qhns"], label_visibility="collapsed", max_chars=8)
-    # Xử lý tự động điền 'Số TK kho bạc' nếu 'Mã QHNS' đủ 8 ký tự
+    st.markdown('<p class="field-label">🏦 Mã QHNS (7 chữ số) <span class="red-star">*</span></p>', unsafe_allow_html=True)
+    qhns_val = st.text_input("f5", value=f["qhns"], label_visibility="collapsed", max_chars=7)
+    # Xử lý tự động điền 'Số TK kho bạc' nếu 'Mã QHNS' đủ 7 ký tự
     if qhns_val != f["qhns"]:
-        v_qhns_clean = re.sub(r'[^0-9]', '', qhns_val) # Chỉ giữ số
-        f["qhns"] = v_qhns_clean
-        # Nếu QHNS là 8 chữ số, tự động điền 'Số TK kho bạc'
-        if len(v_qhns_clean) == 8: f["tk_kb"] = f"9523.4.{v_qhns_clean}"
-        st.rerun()
+        # Giữ lại logic tự động điền cũ của bạn
+        if len(qhns_val) == 7:
+            st.session_state.form["qhns"] = qhns_val
+            f["tk_kb"] = f"9523.4.{qhns_val}"
+            st.rerun() # Reload để update ô Số TK kho bạc
+        else:
+            f["qhns"] = qhns_val
 
     st.markdown('<p class="field-label">💰 Số TK kho bạc <span class="red-star">*</span></p>', unsafe_allow_html=True)
     # Ô này tự động điền từ Mã QHNS
@@ -309,19 +298,12 @@ if st.button("📤 XÁC NHẬN CẬP NHẬT DỮ LIỆU", type="primary", use_co
         speak_male("Bạn vui lòng bổ sung thông tin mới cho cập nhật")
     else:
         # Nếu đủ thông tin, kiểm tra xem MST đã tồn tại trong DB chưa
-        v_mst_check = re.sub(r'[^0-9]', '', f["mst"]) # Làm sạch MST trước khi check
-        if not v_mst_check:
-            st.error("❌ CẢNH BÁO: Mã số thuế không hợp lệ.")
-            st.stop()
-            
-        check = supabase.table("don_vi").select("mst").eq("mst", v_mst_check).execute()
+        check = supabase.table("don_vi").select("mst").eq("mst", f["mst"]).execute()
         if check.data:
             # Nếu MST tồn tại, hiển thị xác nhận ghi đè
-            st.session_state.form['mst'] = v_mst_check # Ghi lại MST sạch
             st.session_state.show_confirm = True
             speak_male("Mã số thuế đã tồn tại, bạn có muốn ghi đè không")
             st.rerun()
         else:
             # Nếu MST mới, lưu trực tiếp
-            st.session_state.form['mst'] = v_mst_check # Ghi lại MST sạch
             final_save(mode="NEW")
