@@ -14,22 +14,29 @@ supabase: Client = create_client(URL, KEY)
 
 st.set_page_config(page_title="HN11 Admin Ultimate", layout="wide")
 
-# --- 2. HÀM HỖ TRỢ PDF UNICODE ---
+# --- 2. HÀM HỖ TRỢ PDF UNICODE (ĐÃ SỬA LỖI) ---
 def export_pdf(row):
     try:
-        pdf = FPDF()
+        # Sử dụng 'P' (Portrait), 'mm', 'A4'
+        pdf = FPDF(orientation='P', unit='mm', format='A4')
         pdf.add_page()
+        
+        # Kiểm tra và nhúng font tiếng Việt (Arial hoặc font tương tự)
+        # Lưu ý: Bạn cần file 'arial.ttf' ở cùng thư mục script
         font_path = "arial.ttf"
         if os.path.exists(font_path):
-            pdf.add_font('ArialVN', '', font_path)
+            pdf.add_font('ArialVN', '', font_path, uni=True)
             pdf.set_font('ArialVN', size=16)
             font_name = 'ArialVN'
         else:
-            pdf.set_font('Helvetica', size=16)
+            # Nếu không có font, dùng Helvetica (nhưng sẽ lỗi dấu tiếng Việt)
+            pdf.set_font('Helvetica', 'B', size=16)
             font_name = 'Helvetica'
+            st.warning("Thiếu file arial.ttf, tiếng Việt có thể bị lỗi hiển thị.")
 
         ten_dv_hoa = str(row.get('ten_don_vi', '')).upper()
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
+        
         pdf.set_font(font_name, size=11)
         pdf.ln(10)
         
@@ -39,18 +46,23 @@ def export_pdf(row):
             "Mã Kho bạc": "ma_kbnn", "Chủ tài khoản": "chu_tai_khoan", "Chức vụ": "chuc_vu",
             "Kế toán trưởng": "ke_toan", "Số điện thoại": "sdt_ke_toan", "Mã máy": "san_pham"
         }
+        
         for label, key in fields.items():
             val = str(row.get(key, key)) if isinstance(key, str) and key in row else str(key)
+            # Dùng multi_cell để tránh tràn dòng
             pdf.multi_cell(0, 8, txt=f"{label}: {val}")
             pdf.ln(1)
-        return bytes(pdf.output())
+            
+        # QUAN TRỌNG: Trả về dữ liệu dạng bytes bằng cách dùng 'S' (string/byte stream)
+        return pdf.output(dest='S').encode('latin-1')
     except Exception as e:
-        st.error(f"Lỗi tạo PDF: {e}")
-        return None
+        st.error(f"Lỗi tạo PDF chi tiết: {e}")
+        return b"" # Trả về chuỗi bytes trống thay vì None
 
 # --- 3. HÀM XUẤT EXCEL THEO BIỂU MẪU ĐẶC THÙ ---
 def export_special_excel(df):
     try:
+        if df.empty: return None
         export_df = pd.DataFrame()
         export_df['STT'] = range(1, len(df) + 1)
         export_df['ĐỊA DANH'] = df['huyen_cu']
@@ -99,7 +111,7 @@ try:
     if not df_raw.empty and 'ten_don_vi' in df_raw.columns:
         df_raw['ten_don_vi'] = df_raw['ten_don_vi'].str.upper()
 
-    # --- 6. SIDEBAR: THỐNG KÊ & PHÂN TÍCH ---
+    # --- 6. SIDEBAR ---
     with st.sidebar:
         st.header("📊 DASHBOARD")
         c_kpi1, c_kpi2 = st.columns(2)
@@ -118,29 +130,16 @@ try:
             fig_side.update_layout(
                 showlegend=True,
                 legend=dict(orientation="h", yanchor="top", y=-0.1, xanchor="center", x=0.5, font=dict(size=10)),
-                margin=dict(t=10, b=10, l=10, r=10),
-                height=250
+                margin=dict(t=10, b=10, l=10, r=10), height=250
             )
             st.plotly_chart(fig_side, use_container_width=True, config={'displayModeBar': False})
 
         st.write("---")
         st.subheader("🔗 TIỆN ÍCH")
         st.link_button("🌐 Tra cứu MST Thuế", "https://tracuunnt.gdt.gov.vn/", use_container_width=True)
-        # Nút kiểm tra cập nhật dựa trên thông tin đã lưu
+        # Nút kiểm tra cập nhật
         st.link_button("🔄 Kiểm tra cập nhật", "https://your-update-link.com", use_container_width=True)
         
-        # --- MỤC PHÂN TÍCH CHUYÊN SÂU (Đã di chuyển) ---
-        st.write("---")
-        with st.expander("📈 PHÂN TÍCH CHUYÊN SÂU", expanded=False):
-            st.caption("Chất lượng dữ liệu")
-            valid_stats = df_raw.notna().sum().drop(['id'], errors='ignore')
-            fig_bar = px.bar(
-                x=valid_stats.values, y=valid_stats.index, orientation='h',
-                color_discrete_sequence=['#DAA520']
-            )
-            fig_bar.update_layout(height=300, margin=dict(l=0, r=0, t=0, b=0))
-            st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
-
         st.divider()
         if st.button("🚪 Đăng xuất", use_container_width=True, type="secondary"):
             st.session_state.auth = False
@@ -166,6 +165,7 @@ try:
         selection_mode="single-row", key="table_select", on_select="rerun"
     )
 
+    # Hiển thị nút tải file hàng loạt
     if not df_f.empty:
         c_ex1, c_ex2 = st.columns(2)
         with c_ex1:
@@ -177,6 +177,7 @@ try:
             if special_excel:
                 st.download_button("📝 XUẤT MẪU CẤP LICENSE", special_excel, "HN11_Cap_License.xlsx", type="primary", use_container_width=True)
 
+    # Xử lý khi chọn một dòng
     if st.session_state.table_select.selection.rows:
         idx = st.session_state.table_select.selection.rows[0]
         row = df_f.iloc[idx]
@@ -212,11 +213,13 @@ try:
             if sdt and sdt != "nan":
                 st.link_button("💬 ZALO KẾ TOÁN", f"https://zalo.me/{sdt}", use_container_width=True)
         with b2:
-            pdf_data = export_pdf(row)
-            st.download_button("📄 XUẤT PDF", pdf_data, f"HN11_{row['mst']}.pdf", use_container_width=True)
+            pdf_bytes = export_pdf(row)
+            if pdf_bytes:
+                st.download_button("📄 XUẤT PDF", pdf_bytes, f"HN11_{row['mst']}.pdf", use_container_width=True, mime="application/pdf")
         with b3:
             row_excel = export_special_excel(pd.DataFrame([row]))
-            st.download_button("📊 XUẤT MẪU LICENSE (DÒNG NÀY)", row_excel, f"License_{row['mst']}.xlsx", use_container_width=True)
+            if row_excel:
+                st.download_button("📊 XUẤT MẪU LICENSE (DÒNG NÀY)", row_excel, f"License_{row['mst']}.xlsx", use_container_width=True)
 
 except Exception as e:
     st.error(f"Lỗi hệ thống: {e}")
