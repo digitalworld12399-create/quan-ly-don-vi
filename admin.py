@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from supabase import create_client, Client
@@ -5,6 +6,7 @@ import io
 import os
 from fpdf import FPDF
 import plotly.express as px
+from datetime import datetime
 
 # --- 1. CẤU HÌNH HỆ THỐNG ---
 URL = "https://niqehefvnzwbfwafncej.supabase.co"
@@ -27,8 +29,7 @@ def export_pdf(row):
             pdf.set_font('Helvetica', size=16)
             font_name = 'Helvetica'
 
-        # Đảm bảo tên đơn vị trên PDF cũng viết hoa
-        ten_dv_hoa = str(row['ten_don_vi']).upper()
+        ten_dv_hoa = str(row.get('ten_don_vi', '')).upper()
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
         pdf.set_font(font_name, size=11)
         pdf.ln(10)
@@ -40,7 +41,6 @@ def export_pdf(row):
             "Kế toán trưởng": "ke_toan", "Số điện thoại": "sdt_ke_toan", "Mã máy": "san_pham"
         }
         for label, key in fields.items():
-            # Nếu key là chuỗi (tên cột) thì lấy giá trị, nếu không thì lấy giá trị trực tiếp (như ten_dv_hoa)
             val = str(row.get(key, key)) if isinstance(key, str) and key in row else str(key)
             pdf.multi_cell(0, 8, txt=f"{label}: {val}")
             pdf.ln(1)
@@ -49,7 +49,43 @@ def export_pdf(row):
         st.error(f"Lỗi tạo PDF: {e}")
         return None
 
-# --- 3. GIAO DIỆN ĐĂNG NHẬP ---
+# --- 3. HÀM XUẤT EXCEL THEO BIỂU MẪU ĐẶC THÙ ---
+def export_special_excel(df):
+    try:
+        # Ánh xạ các cột theo yêu cầu người dùng
+        # ĐỊA DANH -> huyen_cu
+        # TÊN KHÁCH HÀNG -> ten_don_vi
+        # MÃ QUAN HỆ NGÂN SÁCH -> ma_qhns
+        # MÃ KHÁCH HÀNG (SỐ SERIAL) -> san_pham
+        
+        export_df = pd.DataFrame()
+        export_df['STT'] = range(1, len(df) + 1)
+        export_df['ĐỊA DANH'] = df['huyen_cu']
+        export_df['TÊN KHÁCH HÀNG'] = df['ten_don_vi'].str.upper()
+        export_df['MÃ QUAN HỆ NGÂN SÁCH'] = df['ma_qhns']
+        export_df['MÃ KHÁCH HÀNG (SỐ SERIAL)'] = df['san_pham']
+        export_df['PHẦN MỀM'] = "KTHC"
+        export_df['LOẠI CÀI ĐẶT'] = "Chuyển giao"
+        export_df['NGÀY KÝ HỢP ĐỒNG'] = datetime.now().strftime("%d/%m/%Y")
+        export_df['LÝ DO'] = "Cài mới"
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            export_df.to_excel(writer, index=False, sheet_name='NHAPLIEU')
+            # Format header
+            workbook = writer.book
+            worksheet = writer.sheets['NHAPLIEU']
+            header_format = workbook.add_format({'bold': True, 'bg_color': '#D7E4BC', 'border': 1})
+            for col_num, value in enumerate(export_df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+                worksheet.set_column(col_num, col_num, 20)
+        
+        return output.getvalue()
+    except Exception as e:
+        st.error(f"Lỗi xuất Excel đặc thù: {e}")
+        return None
+
+# --- 4. GIAO DIỆN ĐĂNG NHẬP ---
 if "auth" not in st.session_state: st.session_state.auth = False
 if not st.session_state.auth:
     with st.container(border=True):
@@ -63,18 +99,17 @@ if not st.session_state.auth:
             else: st.error("Sai thông tin đăng nhập!")
     st.stop()
 
-# --- 4. TẢI DỮ LIỆU & XỬ LÝ ---
+# --- 5. TẢI DỮ LIỆU & XỬ LÝ ---
 try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
 
-    # TỰ ĐỘNG VIẾT HOA TÊN ĐƠN VỊ KHI HIỂN THỊ
     if not df_raw.empty and 'ten_don_vi' in df_raw.columns:
         df_raw['ten_don_vi'] = df_raw['ten_don_vi'].str.upper()
 
-    # --- 5. SIDEBAR: THỐNG KÊ TỐI ƯU ---
+    # --- 6. SIDEBAR: THỐNG KÊ TỐI ƯU ---
     with st.sidebar:
-        st.header("📊 Chào bạn Nguyễn Ánh")
+        st.header("📊 DASHBOARD")
         c_kpi1, c_kpi2 = st.columns(2)
         c_kpi1.metric("Tổng đơn vị", len(df_raw))
         missing_sdt = int(df_raw['sdt_ke_toan'].isna().sum())
@@ -106,7 +141,7 @@ try:
             st.session_state.auth = False
             st.rerun()
 
-    # --- 6. MÀN HÌNH CHÍNH ---
+    # --- 7. MÀN HÌNH CHÍNH ---
     tab_mgt, tab_bi = st.tabs(["📋 QUẢN LÝ NGHIỆP VỤ", "📈 PHÂN TÍCH CHUYÊN SÂU"])
 
     with tab_mgt:
@@ -127,6 +162,18 @@ try:
             selection_mode="single-row", key="table_select", on_select="rerun"
         )
 
+        # Nút xuất file Excel theo biểu mẫu đặc thù
+        if not df_f.empty:
+            c_ex1, c_ex2 = st.columns(2)
+            with c_ex1:
+                buf_all = io.BytesIO()
+                df_f.to_excel(buf_all, index=False)
+                st.download_button("📥 Tải danh sách gốc (Excel)", buf_all.getvalue(), "HN11_Full_Data.xlsx", use_container_width=True)
+            with c_ex2:
+                special_excel = export_special_excel(df_f)
+                if special_excel:
+                    st.download_button("📝 XUẤT MẪU CẤP LICENSE", special_excel, "HN11_Cap_License.xlsx", type="primary", use_container_width=True)
+
         if st.session_state.table_select.selection.rows:
             idx = st.session_state.table_select.selection.rows[0]
             row = df_f.iloc[idx]
@@ -138,7 +185,6 @@ try:
                 f1, f2, f3 = st.columns(3)
                 up = {}
                 with f1:
-                    # Viết hoa tự động trong ô nhập liệu
                     up['ten_don_vi'] = st.text_input("Tên đơn vị", value=str(row['ten_don_vi']).upper())
                     up['mst'] = st.text_input("MST", row['mst'])
                     up['dia_chi'] = st.text_input("Địa chỉ", row['dia_chi'])
@@ -151,8 +197,7 @@ try:
                     up['sdt_ke_toan'] = st.text_input("SĐT", row['sdt_ke_toan'])
                     up['san_pham'] = st.text_input("Mã máy", row['san_pham'])
                 
-                if st.form_submit_button("💾 LƯU THAY ĐỔI (Sẽ tự động viết hoa tên)", type="primary", use_container_width=True):
-                    # Ép kiểu viết hoa trước khi gửi lên Database
+                if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
                     up['ten_don_vi'] = up['ten_don_vi'].upper()
                     supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
                     st.success("Đã cập nhật thành công!")
@@ -167,9 +212,9 @@ try:
                 pdf_data = export_pdf(row)
                 st.download_button("📄 XUẤT PDF", pdf_data, f"HN11_{row['mst']}.pdf", use_container_width=True)
             with b3:
-                buf_r = io.BytesIO()
-                pd.DataFrame([row]).to_excel(buf_r, index=False)
-                st.download_button("📊 XUẤT EXCEL", buf_r.getvalue(), f"HN11_{row['mst']}.xlsx", use_container_width=True)
+                # Xuất 1 dòng theo biểu mẫu đặc thù
+                row_excel = export_special_excel(pd.DataFrame([row]))
+                st.download_button("📊 XUẤT MẪU LICENSE (DÒNG NÀY)", row_excel, f"License_{row['mst']}.xlsx", use_container_width=True)
 
     with tab_bi:
         st.subheader("📊 Phân tích Chất lượng Dữ liệu")
