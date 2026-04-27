@@ -27,18 +27,21 @@ def export_pdf(row):
             pdf.set_font('Helvetica', size=16)
             font_name = 'Helvetica'
 
+        # Đảm bảo tên đơn vị trên PDF cũng viết hoa
+        ten_dv_hoa = str(row['ten_don_vi']).upper()
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
         pdf.set_font(font_name, size=11)
         pdf.ln(10)
         
         fields = {
-            "Tên đơn vị": "ten_don_vi", "Mã số thuế": "mst", "Địa chỉ": "dia_chi",
+            "Tên đơn vị": ten_dv_hoa, "Mã số thuế": "mst", "Địa chỉ": "dia_chi",
             "Khu vực": "huyen_cu", "Mã QHNS": "ma_qhns", "Số TK Kho bạc": "so_tkkb",
             "Mã Kho bạc": "ma_kbnn", "Chủ tài khoản": "chu_tai_khoan", "Chức vụ": "chuc_vu",
             "Kế toán trưởng": "ke_toan", "Số điện thoại": "sdt_ke_toan", "Mã máy": "san_pham"
         }
         for label, key in fields.items():
-            val = str(row.get(key, "Trống"))
+            # Nếu key là chuỗi (tên cột) thì lấy giá trị, nếu không thì lấy giá trị trực tiếp (như ten_dv_hoa)
+            val = str(row.get(key, key)) if isinstance(key, str) and key in row else str(key)
             pdf.multi_cell(0, 8, txt=f"{label}: {val}")
             pdf.ln(1)
         return bytes(pdf.output())
@@ -65,19 +68,19 @@ try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
 
+    # TỰ ĐỘNG VIẾT HOA TÊN ĐƠN VỊ KHI HIỂN THỊ
+    if not df_raw.empty and 'ten_don_vi' in df_raw.columns:
+        df_raw['ten_don_vi'] = df_raw['ten_don_vi'].str.upper()
+
     # --- 5. SIDEBAR: THỐNG KÊ TỐI ƯU ---
     with st.sidebar:
-        st.header("📊 Chào Nguyễn Ánh")
-        
-        # KPI dàn hàng ngang
+        st.header("📊 DASHBOARD")
         c_kpi1, c_kpi2 = st.columns(2)
         c_kpi1.metric("Tổng đơn vị", len(df_raw))
         missing_sdt = int(df_raw['sdt_ke_toan'].isna().sum())
         c_kpi2.metric("Thiếu SĐT", missing_sdt, delta=f"-{missing_sdt}", delta_color="inverse")
         
         st.write("---")
-        
-        # Biểu đồ tròn thu nhỏ
         if not df_raw.empty:
             st.caption("**Tỷ lệ đơn vị theo khu vực**")
             df_stats = df_raw['huyen_cu'].value_counts().reset_index()
@@ -107,7 +110,6 @@ try:
     tab_mgt, tab_bi = st.tabs(["📋 QUẢN LÝ NGHIỆP VỤ", "📈 PHÂN TÍCH CHUYÊN SÂU"])
 
     with tab_mgt:
-        # Bộ lọc
         col_s1, col_s2 = st.columns([1, 2])
         with col_s1:
             sel_h = st.selectbox("Vùng:", ["Tất cả"] + sorted(df_raw['huyen_cu'].dropna().unique().tolist()))
@@ -119,20 +121,12 @@ try:
             q = search_q.lower()
             df_f = df_f[df_f.apply(lambda x: q in str(x.values).lower(), axis=1)]
 
-        # Bảng dữ liệu
         st.dataframe(
             df_f[['mst', 'ten_don_vi', 'huyen_cu', 'ke_toan', 'sdt_ke_toan', 'san_pham']],
             use_container_width=True, hide_index=True,
             selection_mode="single-row", key="table_select", on_select="rerun"
         )
 
-        # Xuất file Excel hàng loạt
-        if not df_f.empty:
-            buf_all = io.BytesIO()
-            df_f.to_excel(buf_all, index=False)
-            st.download_button("📥 Tải danh sách đang hiển thị (Excel)", buf_all.getvalue(), "HN11_List.xlsx")
-
-        # FORM CHI TIẾT & CHỈNH SỬA
         if st.session_state.table_select.selection.rows:
             idx = st.session_state.table_select.selection.rows[0]
             row = df_f.iloc[idx]
@@ -144,7 +138,8 @@ try:
                 f1, f2, f3 = st.columns(3)
                 up = {}
                 with f1:
-                    up['ten_don_vi'] = st.text_input("Tên đơn vị", row['ten_don_vi'])
+                    # Viết hoa tự động trong ô nhập liệu
+                    up['ten_don_vi'] = st.text_input("Tên đơn vị", value=str(row['ten_don_vi']).upper())
                     up['mst'] = st.text_input("MST", row['mst'])
                     up['dia_chi'] = st.text_input("Địa chỉ", row['dia_chi'])
                 with f2:
@@ -156,12 +151,13 @@ try:
                     up['sdt_ke_toan'] = st.text_input("SĐT", row['sdt_ke_toan'])
                     up['san_pham'] = st.text_input("Mã máy", row['san_pham'])
                 
-                if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
+                if st.form_submit_button("💾 LƯU THAY ĐỔI (Sẽ tự động viết hoa tên)", type="primary", use_container_width=True):
+                    # Ép kiểu viết hoa trước khi gửi lên Database
+                    up['ten_don_vi'] = up['ten_don_vi'].upper()
                     supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
-                    st.success("Đã cập nhật!")
+                    st.success("Đã cập nhật thành công!")
                     st.rerun()
 
-            # Nút hành động ngoài form
             b1, b2, b3 = st.columns(3)
             with b1:
                 sdt = str(row['sdt_ke_toan']).strip()
@@ -177,17 +173,13 @@ try:
 
     with tab_bi:
         st.subheader("📊 Phân tích Chất lượng Dữ liệu")
-        # Thống kê độ đầy đủ thông tin
         valid_stats = df_raw.notna().sum().drop(['id'], errors='ignore')
         fig_bar = px.bar(
             x=valid_stats.values, y=valid_stats.index, orientation='h',
-            title="Mức độ hoàn thiện thông tin (Càng dài càng đầy đủ)",
-            labels={'x': 'Số lượng dòng có dữ liệu', 'y': 'Trường thông tin'},
+            title="Mức độ hoàn thiện thông tin",
             color_discrete_sequence=['#DAA520']
         )
         st.plotly_chart(fig_bar, use_container_width=True)
-        
-        st.info("💡 Mẹo: Biểu đồ này giúp bạn phát hiện những trường thông tin nào đang bị bỏ trống nhiều nhất để kịp thời yêu cầu đơn vị bổ sung.")
 
 except Exception as e:
     st.error(f"Lỗi hệ thống: {e}")
