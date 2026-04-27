@@ -25,13 +25,12 @@ def generate_qr(data):
         img_buffer = io.BytesIO()
         img.save(img_buffer, format="PNG")
         return img_buffer
-    except Exception as e:
+    except:
         return None
 
 # --- 3. HÀM XUẤT PDF (SỬA LỖI CODEC & UNICODE) ---
 def export_pdf(row):
     try:
-        # Sử dụng FPDF mặc định (Khuyên dùng thư viện fpdf2)
         pdf = FPDF()
         pdf.add_page()
         
@@ -72,7 +71,6 @@ def export_pdf(row):
             pdf.multi_cell(0, 8, txt=f"{label}: {val}")
             pdf.ln(1)
 
-        # Trả về dạng bytes nhị phân sạch
         return pdf.output(dest='S').encode('latin-1')
     except Exception as e:
         st.error(f"Lỗi tạo PDF: {e}")
@@ -83,7 +81,7 @@ def export_special_excel(df):
     try:
         export_df = pd.DataFrame()
         export_df['STT'] = range(1, len(df) + 1)
-        export_df['ĐỊA DANH'] = df['huyen_cu']
+        export_df['ĐỊA DANH'] = df['huyen_cu'].fillna("Chưa rõ")
         export_df['TÊN KHÁCH HÀNG'] = df['ten_don_vi'].str.upper()
         export_df['MÃ QUAN HỆ NGÂN SÁCH'] = df['ma_qhns']
         export_df['MÃ KHÁCH HÀNG (SỐ SERIAL)'] = df['san_pham']
@@ -113,6 +111,11 @@ try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
 
+    # --- SỬA LỖI SO SÁNH (FIX: str vs float) ---
+    # Chuyển cột huyen_cu về string và thay thế NaN bằng chuỗi trống để sort không lỗi
+    df_raw['huyen_cu_clean'] = df_raw['huyen_cu'].fillna("").astype(str)
+    list_huyen = sorted([h for h in df_raw['huyen_cu_clean'].unique() if h.strip() != ""])
+
     # SIDEBAR
     with st.sidebar:
         st.header("📊 DASHBOARD")
@@ -121,9 +124,9 @@ try:
         st.write("---")
         st.subheader("🔗 TIỆN ÍCH")
         st.link_button("🌐 Tra cứu MST", "https://tracuunnt.gdt.gov.vn/", use_container_width=True)
+        # Nút Kiểm tra cập nhật dẫn link về thư mục lưu trữ phiên bản mới
         st.link_button("🔄 Kiểm tra cập nhật", "https://your-update-link.com", use_container_width=True)
         
-        # PHÂN TÍCH CHUYÊN SÂU (Cuối cùng bên trái)
         st.write("---")
         with st.expander("📈 PHÂN TÍCH CHUYÊN SÂU", expanded=False):
             valid_stats = df_raw.notna().sum().drop(['id'], errors='ignore')
@@ -138,10 +141,10 @@ try:
 
     # CENTER UI
     st.subheader("📋 QUẢN LÝ ĐƠN VỊ")
-    sel_h = st.selectbox("Vùng:", ["Tất cả"] + sorted(df_raw['huyen_cu'].unique().tolist()))
+    sel_h = st.selectbox("Vùng:", ["Tất cả"] + list_huyen)
     search = st.text_input("🔍 Tìm nhanh", placeholder="MST, Tên...")
 
-    df_f = df_raw if sel_h == "Tất cả" else df_raw[df_raw['huyen_cu'] == sel_h]
+    df_f = df_raw if sel_h == "Tất cả" else df_raw[df_raw['huyen_cu_clean'] == sel_h]
     if search:
         df_f = df_f[df_f.apply(lambda x: search.lower() in str(x.values).lower(), axis=1)]
 
@@ -177,7 +180,7 @@ try:
                 st.download_button("📄 Tải PDF (QR)", pdf_data, f"{row['mst']}.pdf", use_container_width=True)
         with b2:
             sdt = str(row['sdt_ke_toan'])
-            if sdt != 'nan':
+            if sdt != 'nan' and sdt.strip() != "":
                 st.link_button("💬 Zalo", f"https://zalo.me/{sdt}", use_container_width=True)
 
 except Exception as e:
