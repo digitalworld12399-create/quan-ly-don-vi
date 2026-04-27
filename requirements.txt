@@ -5,3 +5,4 @@ fpdf2
 plotly
 qrcode[pil]
 xlsxwriter
+fpdf2
