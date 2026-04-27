@@ -181,7 +181,7 @@ if st.session_state.show_confirm:
     st.stop()
 
 # Tiêu đề chính
-st.markdown('<h1 style="text-align:center; color:#1E90FF; margin-bottom: 20px;">🏦 HỆ THỐNG CẬP NHẬT ĐƠN VỊ HN11</h1>', unsafe_allow_html=True)
+st.markdown('<h1 style="text-align:center; color:#1E90FF; margin-bottom: 20px;">🏦 CẬP NHẬT THÔNG TIN ĐƠN VỊ</h1>', unsafe_allow_html=True)
 
 # --- 5. TRA CỨU ---
 c_search, c_btn = st.columns([ 1.8, 1.2 ])
