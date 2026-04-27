@@ -140,6 +140,20 @@ with st.sidebar:
 
     # Phần thông tin hệ thống
     st.markdown(f"""
+    <div style="background-color: #fdfae6; padding: 20px; border-radius: 12px; border: 1px dashed #d4a017; font-family: 'Segoe UI', Arial, sans-serif;">
+    <div style="display: flex; align-items: flex-start;">
+        <span style="font-size: 24px; margin-right: 12px;">📝</span>
+        <div>
+            <h4 style="color: #5d4037; margin: 0 0 8px 0; font-size: 1.1em;">Hoàn thiện thông tin cá nhân</h4>
+            <p style="color: #795548; margin: 0; line-height: 1.5; font-size: 0.95em;">
+                Để chúng tôi có thể đồng hành và hỗ trợ Anh/Chị một cách nhanh chóng, chính xác nhất trong các nghiệp vụ kế toán, kính mời Anh/Chị cập nhật đầy đủ thông tin hồ sơ.
+            </p>
+            <p style="margin-top: 12px; font-weight: bold; color: #8b4513; font-size: 0.9em;">
+                👉 <a href="#" style="color: #8b4513; text-decoration: underline;">Cập nhật ngay tại đây</a>
+            </p>
+        </div>
+    </div>
+</div>
     """, unsafe_allow_html=True)
     
     st.divider()
