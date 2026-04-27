@@ -1,7 +1,7 @@
 streamlit
 pandas
 supabase
-fpdf
+fpdf2
 plotly
 qrcode[pil]
 xlsxwriter
