@@ -21,7 +21,7 @@ except Exception as e:
 
 st.set_page_config(page_title="HN11 Admin Ultimate", layout="wide")
 
-# --- 1. HÀM XUẤT PDF (ĐÃ FIX LỖI BYTEARRAY) ---
+# --- 1. HÀM XUẤT PDF (ĐÃ BỔ SUNG CHỨC VỤ & FIX LỖI BYTEARRAY) ---
 def export_pdf(row):
     qr_path = None
     try:
@@ -31,6 +31,7 @@ def export_pdf(row):
         pdf = FPDF(orientation='P', unit='mm', format='A4')
         pdf.add_page()
         
+        # Cấu hình font Tiếng Việt
         font_path = "arial.ttf"
         if os.path.exists(font_path):
             pdf.add_font('ArialVN', '', font_path, uni=True)
@@ -47,17 +48,22 @@ def export_pdf(row):
         qr.make(fit=True)
         qr.make_image().save(qr_path)
         
+        # Chèn logo QR
         pdf.image(qr_path, x=170, y=10, w=25)
+        
+        # Tiêu đề
         pdf.set_font(font_name, size=16)
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
         pdf.ln(5)
         
+        # Danh sách các trường hiển thị trong PDF (Đã thêm Chức vụ)
         fields = [
             ("Mã số thuế", row.get('mst')),
             ("Tên đơn vị", str(row.get('ten_don_vi', '')).upper()),
             ("Địa chỉ", row.get('dia_chi')),
             ("Khu vực", row.get('huyen_cu')),
             ("Thủ trưởng", row.get('chu_tai_khoan')),
+            ("Chức vụ", row.get('chuc_vu')), # <--- Bổ sung dòng Chức vụ
             ("Kế toán", row.get('ke_toan')),
             ("Số điện thoại", row.get('sdt_ke_toan')),
             ("Số tài khoản", row.get('so_tkkb')),
@@ -69,7 +75,7 @@ def export_pdf(row):
             pdf.multi_cell(0, 8, txt=f"{label}: {val if val else ''}")
             pdf.ln(1)
             
-        # Ép kiểu bytes để tránh lỗi Invalid binary data format
+        # Ép kiểu bytes để Streamlit không báo lỗi Invalid binary data format
         return bytes(pdf.output(dest='S'))
         
     except Exception as e:
@@ -87,14 +93,14 @@ if not st.session_state.auth:
         st.subheader("🛡️ Đăng nhập Hệ thống")
         u = st.text_input("User")
         p = st.text_input("Password", type="password")
-        if st.button("ĐĂNG NHẬP", use_container_width=True):
+        if st.button("ĐĂNG NHẬP", use_container_width=True, type="primary"):
             if u == "kh" and p == "a11":
                 st.session_state.auth = True
                 st.rerun()
             else: st.error("Sai tài khoản!")
     st.stop()
 
-# --- 3. DỮ LIỆU & THỐNG KÊ ---
+# --- 3. DỮ LIỆU & THỐNG KÊ (GIAO DIỆN ĐẸP) ---
 try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
@@ -112,7 +118,7 @@ try:
             # Tông màu Vàng & Nâu chủ đạo
             color_theme = ["#FFD700", "#DAA520", "#B8860B", "#8B4513", "#5C4033"]
 
-            # Biểu đồ tròn theo Khu vực (Đẹp & Gọn)
+            # Biểu đồ tròn theo Khu vực
             if 'huyen_cu' in df_raw.columns:
                 st.write("**📍 Tỷ lệ theo Khu vực**")
                 df_huyen = df_raw['huyen_cu'].value_counts().reset_index()
@@ -122,7 +128,7 @@ try:
                 fig_pie.update_traces(textinfo='percent+label')
                 st.plotly_chart(fig_pie, use_container_width=True)
 
-            # Biểu đồ cột theo Mã máy (Top 5)
+            # Biểu đồ cột theo Mã máy
             if 'san_pham' in df_raw.columns:
                 st.write("**💻 Top Mã máy (Serial)**")
                 df_sp = df_raw['san_pham'].value_counts().reset_index().head(5)
@@ -139,7 +145,7 @@ try:
 
     # --- 4. GIAO DIỆN CHÍNH ---
     st.subheader("📋 DANH SÁCH ĐƠN VỊ")
-    search = st.text_input("🔍 Tìm kiếm nhanh (Tên, MST, SĐT)...")
+    search = st.text_input("🔍 Tìm kiếm nhanh...", placeholder="Nhập tên, MST hoặc SĐT...")
     
     df_f = df_raw
     if search and not df_raw.empty:
@@ -151,7 +157,7 @@ try:
         selection_mode="single-row", key="table_select", on_select="rerun"
     )
 
-    # --- 5. FORM CHI TIẾT ---
+    # --- 5. FORM CHI TIẾT & CHỈNH SỬA ---
     if not df_f.empty and st.session_state.table_select.selection.rows:
         idx = st.session_state.table_select.selection.rows[0]
         row = df_f.iloc[idx]
@@ -165,22 +171,27 @@ try:
                 up['ten_don_vi'] = st.text_input("Tên đơn vị", value=row.get('ten_don_vi'))
                 up['mst'] = st.text_input("MST", value=row.get('mst'))
                 up['dia_chi'] = st.text_input("Địa chỉ", value=row.get('dia_chi'))
+                up['huyen_cu'] = st.text_input("Huyện cũ", value=row.get('huyen_cu'))
             with c2:
+                up['chu_tai_khoan'] = st.text_input("Thủ trưởng", value=row.get('chu_tai_khoan'))
+                up['chuc_vu'] = st.text_input("Chức vụ", value=row.get('chuc_vu'))
                 up['ke_toan'] = st.text_input("Kế toán", value=row.get('ke_toan'))
                 up['sdt_ke_toan'] = st.text_input("SĐT", value=row.get('sdt_ke_toan'))
-                up['san_pham'] = st.text_input("Mã máy", value=row.get('san_pham'))
+                up['san_pham'] = st.text_input("Mã máy (Serial)", value=row.get('san_pham'))
 
             if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
+                up['ten_don_vi'] = up['ten_don_vi'].upper()
                 supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
-                st.success("Đã cập nhật!")
+                st.success("Đã cập nhật dữ liệu thành công!")
                 st.rerun()
 
         # NÚT XUẤT FILE
+        st.write("### 📂 Thao tác")
         col1, col2, col3 = st.columns(3)
         with col1:
             pdf_data = export_pdf(row)
             if pdf_data:
-                st.download_button("📄 Tải PDF", pdf_data, f"{row['mst']}.pdf", "application/pdf", use_container_width=True)
+                st.download_button("📄 Tải PDF (+QR)", pdf_data, f"HN11_{row['mst']}.pdf", "application/pdf", use_container_width=True)
         with col2:
             sdt = str(row.get('sdt_ke_toan', '')).strip()
             if sdt and sdt != "None":
@@ -188,7 +199,7 @@ try:
         with col3:
             buf = io.BytesIO()
             pd.DataFrame([row]).to_excel(buf, index=False)
-            st.download_button("📊 Xuất Excel", buf.getvalue(), f"{row['mst']}.xlsx", use_container_width=True)
+            st.download_button("📊 Xuất Excel", buf.getvalue(), f"Detail_{row['mst']}.xlsx", use_container_width=True)
 
 except Exception as e:
     st.error(f"Lỗi: {e}")
