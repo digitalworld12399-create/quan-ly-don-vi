@@ -85,7 +85,7 @@ def export_pdf(row):
             pdf.multi_cell(0, 8, txt=f"{label}: {val if val else ''}")
             pdf.ln(1)
             
-        return pdf.output(dest='S').encode('latin-1')
+        return pdf.output(dest='S')
     except Exception as e:
         st.error(f"Lỗi tạo PDF: {e}")
         return b""
