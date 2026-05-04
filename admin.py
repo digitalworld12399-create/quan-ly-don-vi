@@ -29,15 +29,14 @@ st.set_page_config(page_title="HN11 Admin Ultimate", layout="wide")
 def export_pdf(row):
     qr_path = None
     try:
-        # Tạo file tạm cho QR Code
+        # Tạo file tạm cho QR Code để tránh lỗi quyền truy cập
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_qr:
             qr_path = tmp_qr.name
 
         pdf = FPDF(orientation='P', unit='mm', format='A4')
         pdf.add_page()
         
-        # Thêm font hỗ trợ tiếng Việt (Arial)
-        # Quan trọng: File 'arial.ttf' phải có mặt trong thư mục code
+        # Cấu hình Font tiếng Việt
         font_path = "arial.ttf"
         if os.path.exists(font_path):
             pdf.add_font('ArialVN', '', font_path, uni=True)
@@ -47,7 +46,7 @@ def export_pdf(row):
             pdf.set_font('Helvetica', 'B', size=14)
             font_name = 'Helvetica'
 
-        # Tạo nội dung QR (Không dấu để tránh lỗi hiển thị trên một số máy quét)
+        # Tạo QR Code
         mst = str(row.get('mst', 'N/A'))
         ten_dv_raw = str(row.get('ten_don_vi', ''))
         qr_content = f"MST: {mst} - DV: {ten_dv_raw}"
@@ -58,16 +57,15 @@ def export_pdf(row):
         img_qr = qr.make_image(fill_color="black", back_color="white")
         img_qr.save(qr_path)
         
-        # Thêm QR Code vào PDF
+        # Chèn QR Code vào PDF
         pdf.image(qr_path, x=165, y=10, w=30)
 
-        # Tiêu đề phiếu
+        # Nội dung văn bản
         pdf.set_font(font_name, size=18)
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
         pdf.ln(5)
         pdf.set_font(font_name, size=11)
         
-        # Các trường thông tin
         fields = [
             ("Mã số thuế", row.get('mst')),
             ("Tên đơn vị", str(row.get('ten_don_vi', '')).upper()),
@@ -83,20 +81,22 @@ def export_pdf(row):
         ]
         
         for label, val in fields:
-            text = f"{label}: {val if val else ''}"
-            pdf.multi_cell(0, 8, txt=text)
+            pdf.multi_cell(0, 8, txt=f"{label}: {val if val else ''}")
             pdf.ln(1)
             
-        # SỬA LỖI TẠI ĐÂY: Trả về trực tiếp kết quả output dưới dạng bytes
-        return pdf.output(dest='S')
+        # KHẮC PHỤC LỖI: Chuyển đổi bytearray sang bytes chuẩn
+        pdf_output = pdf.output(dest='S')
+        if isinstance(pdf_output, (bytearray, bytes)):
+            return bytes(pdf_output)
+        return pdf_output.encode('latin-1') if isinstance(pdf_output, str) else pdf_output
         
     except Exception as e:
-        st.error(f"Lỗi tạo PDF chi tiết: {e}")
+        st.error(f"Lỗi tạo PDF: {e}")
         return None
     finally:
-        # Xóa file tạm sau khi dùng xong
         if qr_path and os.path.exists(qr_path):
-            os.remove(qr_path)
+            try: os.remove(qr_path)
+            except: pass
 
 # --- 3. KIỂM TRA ĐĂNG NHẬP ---
 if "auth" not in st.session_state: st.session_state.auth = False
@@ -120,23 +120,18 @@ try:
     if not df_raw.empty:
         df_raw['ten_don_vi'] = df_raw['ten_don_vi'].str.upper()
 
-    # --- 5. SIDEBAR: THỐNG KÊ ---
+    # --- 5. SIDEBAR ---
     with st.sidebar:
         if os.path.exists(LOGO_IMAGE):
             st.image(LOGO_IMAGE, use_container_width=True) 
         
         st.title("📊 THỐNG KÊ")
         if not df_raw.empty:
-            total_dv = len(df_raw)
-            col_kpi1, col_kpi2 = st.columns(2)
-            col_kpi1.metric("Tổng đơn vị", total_dv)
-            
-            st.divider()
+            st.metric("Tổng đơn vị", len(df_raw))
             if 'huyen_cu' in df_raw.columns:
-                st.write("**📍 Theo Khu vực**")
                 df_huyen = df_raw['huyen_cu'].value_counts().reset_index()
                 fig_pie = px.pie(df_huyen, values='count', names='huyen_cu', hole=0.4)
-                fig_pie.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=200, showlegend=False)
+                fig_pie.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=250, showlegend=True)
                 st.plotly_chart(fig_pie, use_container_width=True)
 
         st.divider()
@@ -147,7 +142,7 @@ try:
 
     # --- 6. MÀN HÌNH CHÍNH ---
     st.subheader("📋 QUẢN LÝ DANH SÁCH")
-    search_q = st.text_input("🔍 Tìm kiếm nhanh...", placeholder="Nhập tên, MST hoặc SĐT...")
+    search_q = st.text_input("🔍 Tìm kiếm...", placeholder="Nhập tên, MST hoặc SĐT...")
     
     df_f = df_raw
     if search_q and not df_raw.empty:
@@ -161,52 +156,44 @@ try:
         selection_mode="single-row", key="table_select", on_select="rerun"
     )
 
-    # --- 7. CHI TIẾT & CHỈNH SỬA ---
+    # --- 7. FORM CHI TIẾT ---
     if not df_f.empty and st.session_state.table_select.selection.rows:
         idx = st.session_state.table_select.selection.rows[0]
         row = df_f.iloc[idx]
         
         st.divider()
-        st.subheader(f"🛠️ CHI TIẾT: {row['ten_don_vi']}")
-        
         with st.form("edit_form"):
+            st.subheader(f"🛠️ CHỈNH SỬA: {row['ten_don_vi']}")
             c1, c2 = st.columns(2)
             up = {} 
             with c1:
                 up['ten_don_vi'] = st.text_input("Tên đơn vị", value=row.get('ten_don_vi', ''))
                 up['mst'] = st.text_input("Mã số thuế", value=row.get('mst', ''))
                 up['dia_chi'] = st.text_input("Địa chỉ", value=row.get('dia_chi', ''))
-                up['huyen_cu'] = st.text_input("Huyện cũ", value=row.get('huyen_cu', ''))
             with c2:
-                up['chu_tai_khoan'] = st.text_input("Thủ trưởng", value=row.get('chu_tai_khoan', ''))
                 up['ke_toan'] = st.text_input("Kế toán", value=row.get('ke_toan', ''))
                 up['sdt_ke_toan'] = st.text_input("Số điện thoại", value=row.get('sdt_ke_toan', ''))
                 up['san_pham'] = st.text_input("Mã máy (Serial)", value=row.get('san_pham', ''))
 
             if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
-                try:
-                    up['ten_don_vi'] = up['ten_don_vi'].upper()
-                    supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
-                    st.success("Đã lưu thành công!")
-                    st.rerun()
-                except Exception as save_e:
-                    st.error(f"Lỗi lưu: {save_e}")
+                supabase.table("don_vi").update(up).eq("mst", row['mst']).execute()
+                st.success("Đã cập nhật!")
+                st.rerun()
 
-        # THAO TÁC FILE
-        st.write("### 📂 Thao tác")
-        b_col1, b_col2, b_col3 = st.columns(3)
-        with b_col1:
-            pdf_bytes = export_pdf(row)
-            if pdf_bytes:
-                st.download_button("📄 TẢI PDF", pdf_bytes, f"HN11_{row['mst']}.pdf", "application/pdf", use_container_width=True)
-        with b_col2:
+        # NÚT THAO TÁC NHANH
+        col_pdf, col_zalo, col_excel = st.columns(3)
+        with col_pdf:
+            pdf_data = export_pdf(row)
+            if pdf_data:
+                st.download_button("📄 TẢI PDF", pdf_data, f"{row['mst']}.pdf", "application/pdf", use_container_width=True)
+        with col_zalo:
             sdt = str(row.get('sdt_ke_toan', '')).strip()
             if sdt and sdt not in ["None", ""]:
                 st.link_button("💬 ZALO", f"https://zalo.me/{sdt}", use_container_width=True)
-        with b_col3:
+        with col_excel:
             buf = io.BytesIO()
             pd.DataFrame([row]).to_excel(buf, index=False)
-            st.download_button("📊 EXCEL", buf.getvalue(), f"Detail_{row['mst']}.xlsx", use_container_width=True)
+            st.download_button("📊 EXCEL", buf.getvalue(), f"{row['mst']}.xlsx", use_container_width=True)
 
 except Exception as e:
-    st.error(f"Lỗi hệ thống: {e}")
+    st.error(f"Lỗi ứng dụng: {e}")
