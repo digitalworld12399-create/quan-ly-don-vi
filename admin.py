@@ -9,10 +9,8 @@ import plotly.express as px
 import tempfile
 
 # --- 0. CẤU HÌNH ---
-# Bạn có thể thay đổi tên tệp logo nếu cần
 LOGO_IMAGE = "logo.png" 
 URL = "https://niqehefvnzwbfwafncej.supabase.co"
-# Lưu ý: Trong thực tế nên dùng st.secrets để bảo mật KEY
 KEY = "sb_publishable_3clZvjfg6EoOxZQ0QzsBOQ_m2v9KiKN"
 
 try:
@@ -33,7 +31,7 @@ def export_pdf(row):
         pdf = FPDF(orientation='P', unit='mm', format='A4')
         pdf.add_page()
         
-        # Cấu hình font Tiếng Việt (Cần tệp arial.ttf cùng thư mục)
+        # Cấu hình font Tiếng Việt
         font_path = "arial.ttf"
         if os.path.exists(font_path):
             pdf.add_font('ArialVN', '', font_path, uni=True)
@@ -58,7 +56,7 @@ def export_pdf(row):
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
         pdf.ln(5)
         
-        # Danh sách các trường hiển thị
+        # Danh sách các trường hiển thị trong PDF (Đã bổ sung Mã đơn vị BCTCNN)
         fields = [
             ("Mã số thuế", row.get('mst')),
             ("Tên đơn vị", str(row.get('ten_don_vi', '')).upper()),
@@ -69,7 +67,8 @@ def export_pdf(row):
             ("Kế toán", row.get('ke_toan')),
             ("Số điện thoại", row.get('sdt_ke_toan')),
             ("Số tài khoản", row.get('so_tkkb')),
-            ("Mã máy (Serial)", row.get('san_pham'))
+            ("Mã máy (Serial)", row.get('san_pham')),
+            ("Mã đơn vị BCTCNN", row.get('ma_bctcnn')) # <--- Bổ sung vào PDF
         ]
         
         pdf.set_font(font_name, size=11)
@@ -101,7 +100,7 @@ if not st.session_state.auth:
             else: st.error("Sai tài khoản!")
     st.stop()
 
-# --- 3. DỮ LIỆU & SIDEBAR ---
+# --- 3. DỮ LIỆU & THỐNG KÊ (GIAO DIỆN SIDEBAR) ---
 try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
@@ -135,7 +134,6 @@ try:
                 st.plotly_chart(fig_bar, use_container_width=True)
 
         st.divider()
-        # Nút Google Drive theo yêu cầu của bạn
         st.write("📂 **KHO LƯU TRỮ**")
         st.link_button("🌐 Mở Google Drive", 
                        "https://drive.google.com/drive/folders/1F5BCYCKIdPK2FAhQmog-8rWVAYagpGAW?usp=sharing", 
@@ -161,7 +159,7 @@ try:
         selection_mode="single-row", key="table_select", on_select="rerun"
     )
 
-    # --- 5. FORM CHI TIẾT ---
+    # --- 5. FORM CHI TIẾT & CHỈNH SỬA ---
     if not df_f.empty and st.session_state.table_select.selection.rows:
         idx = st.session_state.table_select.selection.rows[0]
         row = df_f.iloc[idx]
@@ -181,7 +179,13 @@ try:
                 up['chuc_vu'] = st.text_input("Chức vụ", value=row.get('chuc_vu'))
                 up['ke_toan'] = st.text_input("Kế toán", value=row.get('ke_toan'))
                 up['sdt_ke_toan'] = st.text_input("SĐT", value=row.get('sdt_ke_toan'))
-                up['san_pham'] = st.text_input("Mã máy (Serial)", value=row.get('san_pham'))
+                
+                # Bố sung Mã đơn vị BCTCNN bên cạnh Mã máy
+                cc1, cc2 = st.columns(2)
+                with cc1:
+                    up['san_pham'] = st.text_input("Mã máy (Serial)", value=row.get('san_pham'))
+                with cc2:
+                    up['ma_bctcnn'] = st.text_input("Mã đơn vị BCTCNN", value=row.get('ma_bctcnn'))
 
             if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
                 up['ten_don_vi'] = up['ten_don_vi'].upper()
