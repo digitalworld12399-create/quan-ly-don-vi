@@ -68,7 +68,7 @@ def export_pdf(row):
             ("Số điện thoại", row.get('sdt_ke_toan')),
             ("Số tài khoản", row.get('so_tkkb')),
             ("Mã máy (Serial)", row.get('san_pham')),
-            ("Mã đơn vị BCTCNN", row.get('ma_bctcnn')) # <--- Bổ sung vào PDF
+            ("Mã đơn vị BCTCNN", row.get('ma_bctcnn')) 
         ]
         
         pdf.set_font(font_name, size=11)
@@ -100,7 +100,7 @@ if not st.session_state.auth:
             else: st.error("Sai tài khoản!")
     st.stop()
 
-# --- 3. DỮ LIỆU & THỐNG KÊ (GIAO DIỆN SIDEBAR) ---
+# --- 3. DỮ LIỆU & THỐNG KÊ ---
 try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
@@ -114,7 +114,6 @@ try:
         st.title("📊 THỐNG KÊ")
         if not df_raw.empty:
             st.metric("Tổng đơn vị", len(df_raw))
-            
             color_theme = ["#FFD700", "#DAA520", "#B8860B", "#8B4513", "#5C4033"]
 
             if 'huyen_cu' in df_raw.columns:
@@ -126,19 +125,11 @@ try:
                 fig_pie.update_traces(textinfo='percent+label')
                 st.plotly_chart(fig_pie, use_container_width=True)
 
-            if 'san_pham' in df_raw.columns:
-                st.write("**💻 Top Mã máy (Serial)**")
-                df_sp = df_raw['san_pham'].value_counts().reset_index().head(5)
-                fig_bar = px.bar(df_sp, x='san_pham', y='count', color_discrete_sequence=["#DAA520"])
-                fig_bar.update_layout(margin=dict(l=0, r=0, t=10, b=0), height=200, xaxis_title=None, yaxis_title=None)
-                st.plotly_chart(fig_bar, use_container_width=True)
-
         st.divider()
         st.write("📂 **KHO LƯU TRỮ**")
         st.link_button("🌐 Mở Google Drive", 
                        "https://drive.google.com/drive/folders/1F5BCYCKIdPK2FAhQmog-8rWVAYagpGAW?usp=sharing", 
                        use_container_width=True)
-        
         st.link_button("🔄 Kiểm tra cập nhật", "https://your-link.com", use_container_width=True)
         
         if st.button("🚪 Thoát", use_container_width=True):
@@ -180,12 +171,12 @@ try:
                 up['ke_toan'] = st.text_input("Kế toán", value=row.get('ke_toan'))
                 up['sdt_ke_toan'] = st.text_input("SĐT", value=row.get('sdt_ke_toan'))
                 
-                # Bố sung Mã đơn vị BCTCNN bên cạnh Mã máy
-                cc1, cc2 = st.columns(2)
-                with cc1:
-                    up['san_pham'] = st.text_input("Mã máy (Serial)", value=row.get('san_pham'))
-                with cc2:
-                    up['ma_bctcnn'] = st.text_input("Mã đơn vị BCTCNN", value=row.get('ma_bctcnn'))
+            # Hàng cuối: Hiển thị đối xứng Mã máy và Mã BCTCNN[cite: 1]
+            col_left, col_right = st.columns(2)
+            with col_left:
+                up['san_pham'] = st.text_input("💻 Mã máy (Serial)", value=row.get('san_pham'))
+            with col_right:
+                up['ma_bctcnn'] = st.text_input("🆔 Mã đơn vị BCTCNN", value=row.get('ma_bctcnn'))
 
             if st.form_submit_button("💾 LƯU THAY ĐỔI", type="primary", use_container_width=True):
                 up['ten_don_vi'] = up['ten_don_vi'].upper()
@@ -193,7 +184,7 @@ try:
                 st.success("Đã cập nhật dữ liệu thành công!")
                 st.rerun()
 
-        # NÚT XUẤT FILE
+        # NÚT THAO TÁC
         st.write("### 📂 Thao tác")
         col1, col2, col3 = st.columns(3)
         with col1:
