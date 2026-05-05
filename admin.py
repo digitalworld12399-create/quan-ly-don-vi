@@ -9,8 +9,10 @@ import plotly.express as px
 import tempfile
 
 # --- 0. CẤU HÌNH ---
+# Bạn có thể thay đổi tên tệp logo nếu cần
 LOGO_IMAGE = "logo.png" 
 URL = "https://niqehefvnzwbfwafncej.supabase.co"
+# Lưu ý: Trong thực tế nên dùng st.secrets để bảo mật KEY
 KEY = "sb_publishable_3clZvjfg6EoOxZQ0QzsBOQ_m2v9KiKN"
 
 try:
@@ -21,7 +23,7 @@ except Exception as e:
 
 st.set_page_config(page_title="HN11 Admin Ultimate", layout="wide")
 
-# --- 1. HÀM XUẤT PDF (ĐÃ BỔ SUNG CHỨC VỤ & FIX LỖI BYTEARRAY) ---
+# --- 1. HÀM XUẤT PDF ---
 def export_pdf(row):
     qr_path = None
     try:
@@ -31,7 +33,7 @@ def export_pdf(row):
         pdf = FPDF(orientation='P', unit='mm', format='A4')
         pdf.add_page()
         
-        # Cấu hình font Tiếng Việt
+        # Cấu hình font Tiếng Việt (Cần tệp arial.ttf cùng thư mục)
         font_path = "arial.ttf"
         if os.path.exists(font_path):
             pdf.add_font('ArialVN', '', font_path, uni=True)
@@ -56,14 +58,14 @@ def export_pdf(row):
         pdf.cell(0, 15, txt="PHIẾU THÔNG TIN ĐƠN VỊ", ln=True, align='C')
         pdf.ln(5)
         
-        # Danh sách các trường hiển thị trong PDF (Đã thêm Chức vụ)
+        # Danh sách các trường hiển thị
         fields = [
             ("Mã số thuế", row.get('mst')),
             ("Tên đơn vị", str(row.get('ten_don_vi', '')).upper()),
             ("Địa chỉ", row.get('dia_chi')),
             ("Khu vực", row.get('huyen_cu')),
             ("Thủ trưởng", row.get('chu_tai_khoan')),
-            ("Chức vụ", row.get('chuc_vu')), # <--- Bổ sung dòng Chức vụ
+            ("Chức vụ", row.get('chuc_vu')),
             ("Kế toán", row.get('ke_toan')),
             ("Số điện thoại", row.get('sdt_ke_toan')),
             ("Số tài khoản", row.get('so_tkkb')),
@@ -75,7 +77,6 @@ def export_pdf(row):
             pdf.multi_cell(0, 8, txt=f"{label}: {val if val else ''}")
             pdf.ln(1)
             
-        # Ép kiểu bytes để Streamlit không báo lỗi Invalid binary data format
         return bytes(pdf.output(dest='S'))
         
     except Exception as e:
@@ -100,7 +101,7 @@ if not st.session_state.auth:
             else: st.error("Sai tài khoản!")
     st.stop()
 
-# --- 3. DỮ LIỆU & THỐNG KÊ (GIAO DIỆN ĐẸP) ---
+# --- 3. DỮ LIỆU & SIDEBAR ---
 try:
     res = supabase.table("don_vi").select("*").execute()
     df_raw = pd.DataFrame(res.data)
@@ -115,30 +116,33 @@ try:
         if not df_raw.empty:
             st.metric("Tổng đơn vị", len(df_raw))
             
-            # Tông màu Vàng & Nâu chủ đạo
             color_theme = ["#FFD700", "#DAA520", "#B8860B", "#8B4513", "#5C4033"]
 
-            # Biểu đồ tròn theo Khu vực
             if 'huyen_cu' in df_raw.columns:
                 st.write("**📍 Tỷ lệ theo Khu vực**")
                 df_huyen = df_raw['huyen_cu'].value_counts().reset_index()
                 fig_pie = px.pie(df_huyen, values='count', names='huyen_cu', hole=0.5,
                                  color_discrete_sequence=color_theme)
-                fig_pie.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=250, showlegend=False)
+                fig_pie.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=200, showlegend=False)
                 fig_pie.update_traces(textinfo='percent+label')
                 st.plotly_chart(fig_pie, use_container_width=True)
 
-            # Biểu đồ cột theo Mã máy
             if 'san_pham' in df_raw.columns:
                 st.write("**💻 Top Mã máy (Serial)**")
                 df_sp = df_raw['san_pham'].value_counts().reset_index().head(5)
-                fig_bar = px.bar(df_sp, x='san_pham', y='count', 
-                                 color_discrete_sequence=["#DAA520"])
-                fig_bar.update_layout(margin=dict(l=0, r=0, t=10, b=0), height=230, xaxis_title=None, yaxis_title=None)
+                fig_bar = px.bar(df_sp, x='san_pham', y='count', color_discrete_sequence=["#DAA520"])
+                fig_bar.update_layout(margin=dict(l=0, r=0, t=10, b=0), height=200, xaxis_title=None, yaxis_title=None)
                 st.plotly_chart(fig_bar, use_container_width=True)
 
         st.divider()
-        st.link_button("🔄 Cập nhật phần mềm", "https://your-link.com", use_container_width=True)
+        # Nút Google Drive theo yêu cầu của bạn
+        st.write("📂 **KHO LƯU TRỮ**")
+        st.link_button("🌐 Mở Google Drive", 
+                       "https://drive.google.com/drive/folders/1F5BCYCKIdPK2FAhQmog-8rWVAYagpGAW?usp=sharing", 
+                       use_container_width=True)
+        
+        st.link_button("🔄 Kiểm tra cập nhật", "https://your-link.com", use_container_width=True)
+        
         if st.button("🚪 Thoát", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
@@ -157,7 +161,7 @@ try:
         selection_mode="single-row", key="table_select", on_select="rerun"
     )
 
-    # --- 5. FORM CHI TIẾT & CHỈNH SỬA ---
+    # --- 5. FORM CHI TIẾT ---
     if not df_f.empty and st.session_state.table_select.selection.rows:
         idx = st.session_state.table_select.selection.rows[0]
         row = df_f.iloc[idx]
